@@ -1,59 +1,42 @@
+
 import React, { useState } from 'react';
-import { Plus, Receipt, Search, BarChart3, Calendar } from 'lucide-react';
+import { Plus, Receipt, Search, BarChart3, Calendar, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import MaterialCard from '@/components/MaterialCard';
 import BillCard from '@/components/BillCard';
 import AddBillForm from '@/components/AddBillForm';
+import AuthForm from '@/components/AuthForm';
 import { materialTypes } from '@/data/materials';
-import { Bill } from '@/types/bill';
+import { useAuth } from '@/hooks/useAuth';
+import { useBills } from '@/hooks/useBills';
 
 const Index = () => {
+  const { user, loading: authLoading, signOut } = useAuth();
+  const { bills, loading: billsLoading, deleteBill } = useBills();
   const [currentView, setCurrentView] = useState('dashboard');
-  const [bills, setBills] = useState<Bill[]>([
-    {
-      id: '1',
-      shopName: 'Sharma Hardware Store',
-      material: 'Water Pipes',
-      amount: 2500,
-      date: '23/06/2025',
-      location: 'Main Market',
-      materialIcon: materialTypes[0].icon,
-    },
-    {
-      id: '2',
-      shopName: 'City Cement Suppliers',
-      material: 'Cement',
-      amount: 8500,
-      date: '22/06/2025',
-      materialIcon: materialTypes[1].icon,
-    },
-    {
-      id: '3',
-      shopName: 'Steel World',
-      material: 'Steel/Rebar',
-      amount: 15000,
-      date: '21/06/2025',
-      location: 'Industrial Area',
-      materialIcon: materialTypes[2].icon,
-    },
-  ]);
-  
   const [searchTerm, setSearchTerm] = useState('');
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <div className="text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthForm />;
+  }
 
   const totalAmount = bills.reduce((sum, bill) => sum + bill.amount, 0);
   const filteredBills = bills.filter(bill => 
-    bill.shopName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    bill.shop_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     bill.material.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddBill = (newBill: Bill) => {
-    setBills([newBill, ...bills]);
-    setCurrentView('bills');
-  };
-
   const handleDeleteBill = (billId: string) => {
-    setBills(bills.filter(bill => bill.id !== billId));
+    deleteBill(billId);
   };
 
   const renderDashboard = () => (
@@ -62,6 +45,7 @@ const Index = () => {
       <div className="text-center">
         <h1 className="text-4xl font-bold text-gray-800 mb-2">Construction Bills Manager</h1>
         <p className="text-xl text-gray-600">Track your construction material purchases</p>
+        <p className="text-sm text-gray-500 mt-2">Welcome, {user.email}</p>
       </div>
 
       {/* Stats Cards */}
@@ -123,16 +107,32 @@ const Index = () => {
             View All Bills
           </Button>
         </div>
-        <div className="grid md:grid-cols-2 gap-6">
-          {bills.slice(0, 4).map((bill) => (
-            <BillCard
-              key={bill.id}
-              bill={bill}
-              onView={() => console.log('View bill:', bill.id)}
-              onDelete={() => handleDeleteBill(bill.id)}
-            />
-          ))}
-        </div>
+        {billsLoading ? (
+          <div className="text-center py-8">Loading bills...</div>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-6">
+            {bills.slice(0, 4).map((bill) => {
+              // Convert database bill to display format
+              const materialType = materialTypes.find(m => m.name === bill.material);
+              return (
+                <BillCard
+                  key={bill.id}
+                  bill={{
+                    id: bill.id,
+                    shopName: bill.shop_name,
+                    material: bill.material,
+                    amount: bill.amount,
+                    date: new Date(bill.date).toLocaleDateString('en-IN'),
+                    location: bill.location,
+                    materialIcon: materialType?.icon || Receipt,
+                  }}
+                  onView={() => console.log('View bill:', bill.id)}
+                  onDelete={() => handleDeleteBill(bill.id)}
+                />
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -162,18 +162,33 @@ const Index = () => {
       </div>
 
       {/* Bills Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredBills.map((bill) => (
-          <BillCard
-            key={bill.id}
-            bill={bill}
-            onView={() => console.log('View bill:', bill.id)}
-            onDelete={() => handleDeleteBill(bill.id)}
-          />
-        ))}
-      </div>
+      {billsLoading ? (
+        <div className="text-center py-12">Loading bills...</div>
+      ) : (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredBills.map((bill) => {
+            const materialType = materialTypes.find(m => m.name === bill.material);
+            return (
+              <BillCard
+                key={bill.id}
+                bill={{
+                  id: bill.id,
+                  shopName: bill.shop_name,
+                  material: bill.material,
+                  amount: bill.amount,
+                  date: new Date(bill.date).toLocaleDateString('en-IN'),
+                  location: bill.location,
+                  materialIcon: materialType?.icon || Receipt,
+                }}
+                onView={() => console.log('View bill:', bill.id)}
+                onDelete={() => handleDeleteBill(bill.id)}
+              />
+            );
+          })}
+        </div>
+      )}
 
-      {filteredBills.length === 0 && (
+      {filteredBills.length === 0 && !billsLoading && (
         <div className="text-center py-12">
           <Receipt size={64} className="mx-auto text-gray-300 mb-4" />
           <p className="text-xl text-gray-500">No bills found</p>
@@ -205,13 +220,19 @@ const Index = () => {
                 </Button>
               </div>
             </div>
-            <Button 
-              onClick={() => setCurrentView('add-bill')}
-              className="bg-blue-500 hover:bg-blue-600"
-            >
-              <Plus size={16} className="mr-2" />
-              Add Bill
-            </Button>
+            <div className="flex items-center space-x-4">
+              <Button 
+                onClick={() => setCurrentView('add-bill')}
+                className="bg-blue-500 hover:bg-blue-600"
+              >
+                <Plus size={16} className="mr-2" />
+                Add Bill
+              </Button>
+              <Button onClick={signOut} variant="outline" size="sm">
+                <LogOut size={16} className="mr-2" />
+                Sign Out
+              </Button>
+            </div>
           </div>
         </div>
       </nav>
@@ -222,7 +243,7 @@ const Index = () => {
         {currentView === 'bills' && renderBillsList()}
         {currentView === 'add-bill' && (
           <AddBillForm
-            onSave={handleAddBill}
+            onSave={() => setCurrentView('dashboard')}
             onCancel={() => setCurrentView('dashboard')}
           />
         )}

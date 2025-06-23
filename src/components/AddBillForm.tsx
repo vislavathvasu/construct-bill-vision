@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -5,10 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Camera, Save, X } from 'lucide-react';
 import MaterialCard from './MaterialCard';
 import { materialTypes } from '../data/materials';
-import { Bill } from '@/types/bill';
+import { useBills } from '@/hooks/useBills';
 
 interface AddBillFormProps {
-  onSave: (bill: Bill) => void;
+  onSave: () => void;
   onCancel: () => void;
 }
 
@@ -17,23 +18,29 @@ const AddBillForm: React.FC<AddBillFormProps> = ({ onSave, onCancel }) => {
   const [shopName, setShopName] = useState('');
   const [amount, setAmount] = useState('');
   const [location, setLocation] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { addBill } = useBills();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedMaterial || !shopName || !amount) return;
 
-    const materialData = materialTypes.find(m => m.id === selectedMaterial);
-    const newBill: Bill = {
-      id: Date.now().toString(),
-      shopName,
-      material: materialData?.name || '',
-      amount: parseFloat(amount),
-      date: new Date().toLocaleDateString('en-IN'),
-      location: location || undefined,
-      materialIcon: materialData?.icon!,
-    };
-
-    onSave(newBill);
+    setLoading(true);
+    try {
+      const materialData = materialTypes.find(m => m.id === selectedMaterial);
+      await addBill({
+        shop_name: shopName,
+        material: materialData?.name || '',
+        amount: parseFloat(amount),
+        date: new Date().toISOString().split('T')[0],
+        location: location || undefined,
+      });
+      onSave();
+    } catch (error) {
+      // Error is handled in the hook
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -115,10 +122,10 @@ const AddBillForm: React.FC<AddBillFormProps> = ({ onSave, onCancel }) => {
           <Button 
             type="submit" 
             className="flex-1 bg-green-500 hover:bg-green-600 text-white text-lg py-3"
-            disabled={!selectedMaterial || !shopName || !amount}
+            disabled={!selectedMaterial || !shopName || !amount || loading}
           >
             <Save size={20} className="mr-2" />
-            Save Bill
+            {loading ? 'Saving...' : 'Save Bill'}
           </Button>
         </div>
       </form>
