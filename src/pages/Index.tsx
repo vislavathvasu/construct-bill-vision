@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, Receipt, Search, BarChart3, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,10 +6,11 @@ import MaterialCard from '@/components/MaterialCard';
 import BillCard from '@/components/BillCard';
 import AddBillForm from '@/components/AddBillForm';
 import { materialTypes } from '@/data/materials';
+import { Bill } from '@/types/bill';
 
 const Index = () => {
   const [currentView, setCurrentView] = useState('dashboard');
-  const [bills, setBills] = useState([
+  const [bills, setBills] = useState<Bill[]>([
     {
       id: '1',
       shopName: 'Sharma Hardware Store',
@@ -47,7 +47,7 @@ const Index = () => {
     bill.material.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddBill = (newBill: any) => {
+  const handleAddBill = (newBill: Bill) => {
     setBills([newBill, ...bills]);
     setCurrentView('bills');
   };

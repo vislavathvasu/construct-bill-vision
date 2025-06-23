@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,9 +5,10 @@ import { Label } from '@/components/ui/label';
 import { Camera, Save, X } from 'lucide-react';
 import MaterialCard from './MaterialCard';
 import { materialTypes } from '../data/materials';
+import { Bill } from '@/types/bill';
 
 interface AddBillFormProps {
-  onSave: (bill: any) => void;
+  onSave: (bill: Bill) => void;
   onCancel: () => void;
 }
 
@@ -23,14 +23,14 @@ const AddBillForm: React.FC<AddBillFormProps> = ({ onSave, onCancel }) => {
     if (!selectedMaterial || !shopName || !amount) return;
 
     const materialData = materialTypes.find(m => m.id === selectedMaterial);
-    const newBill = {
+    const newBill: Bill = {
       id: Date.now().toString(),
       shopName,
       material: materialData?.name || '',
       amount: parseFloat(amount),
       date: new Date().toLocaleDateString('en-IN'),
       location: location || undefined,
-      materialIcon: materialData?.icon,
+      materialIcon: materialData?.icon!,
     };
 
     onSave(newBill);

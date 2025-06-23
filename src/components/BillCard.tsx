@@ -2,16 +2,7 @@
 import React from 'react';
 import { Calendar, MapPin, Receipt, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
-interface Bill {
-  id: string;
-  shopName: string;
-  material: string;
-  amount: number;
-  date: string;
-  location?: string;
-  materialIcon: React.ComponentType<{ size?: number; className?: string }>;
-}
+import { Bill } from '@/types/bill';
 
 interface BillCardProps {
   bill: Bill;
