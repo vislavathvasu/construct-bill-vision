@@ -1,19 +1,25 @@
 
 import React, { useState } from 'react';
-import { Plus, Receipt, Search, BarChart3, Calendar, LogOut } from 'lucide-react';
+import { Plus, Receipt, Search, BarChart3, Calendar, LogOut, Users, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import MaterialCard from '@/components/MaterialCard';
 import BillCard from '@/components/BillCard';
 import AddBillForm from '@/components/AddBillForm';
+import AddWorkerForm from '@/components/AddWorkerForm';
+import AddWageForm from '@/components/AddWageForm';
+import WorkerCard from '@/components/WorkerCard';
+import WageRecordCard from '@/components/WageRecordCard';
 import AuthForm from '@/components/AuthForm';
 import { materialTypes } from '@/data/materials';
 import { useAuth } from '@/hooks/useAuth';
 import { useBills } from '@/hooks/useBills';
+import { useWorkers } from '@/hooks/useWorkers';
 
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const { bills, loading: billsLoading, deleteBill } = useBills();
+  const { workers, wageRecords, loading: workersLoading, deleteWorker } = useWorkers();
   const [currentView, setCurrentView] = useState('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -30,6 +36,7 @@ const Index = () => {
   }
 
   const totalAmount = bills.reduce((sum, bill) => sum + bill.amount, 0);
+  const totalWages = wageRecords.reduce((sum, record) => sum + record.amount, 0);
   const filteredBills = bills.filter(bill => 
     bill.shop_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     bill.material.toLowerCase().includes(searchTerm.toLowerCase())
@@ -39,17 +46,21 @@ const Index = () => {
     deleteBill(billId);
   };
 
+  const handleDeleteWorker = (workerId: string) => {
+    deleteWorker(workerId);
+  };
+
   const renderDashboard = () => (
     <div className="space-y-8">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-800 mb-2">Construction Bills Manager</h1>
-        <p className="text-xl text-gray-600">Track your construction material purchases</p>
+        <h1 className="text-4xl font-bold text-gray-800 mb-2">Construction Manager</h1>
+        <p className="text-xl text-gray-600">Track bills, workers, and wages</p>
         <p className="text-sm text-gray-500 mt-2">Welcome, {user.email}</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-4 gap-6">
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow-lg">
           <div className="flex items-center justify-between">
             <div>
@@ -63,7 +74,7 @@ const Index = () => {
         <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl shadow-lg">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-green-100">Total Amount</p>
+              <p className="text-green-100">Bill Amount</p>
               <p className="text-3xl font-bold">₹{totalAmount.toLocaleString()}</p>
             </div>
             <BarChart3 size={48} className="text-green-200" />
@@ -73,10 +84,20 @@ const Index = () => {
         <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-xl shadow-lg">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-100">This Month</p>
-              <p className="text-3xl font-bold">{bills.length}</p>
+              <p className="text-purple-100">Workers</p>
+              <p className="text-3xl font-bold">{workers.length}</p>
             </div>
-            <Calendar size={48} className="text-purple-200" />
+            <Users size={48} className="text-purple-200" />
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-xl shadow-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-orange-100">Total Wages</p>
+              <p className="text-3xl font-bold">₹{totalWages.toLocaleString()}</p>
+            </div>
+            <DollarSign size={48} className="text-orange-200" />
           </div>
         </div>
       </div>
@@ -112,7 +133,6 @@ const Index = () => {
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
             {bills.slice(0, 4).map((bill) => {
-              // Convert database bill to display format
               const materialType = materialTypes.find(m => m.name === bill.material);
               return (
                 <BillCard
@@ -150,7 +170,6 @@ const Index = () => {
         </Button>
       </div>
 
-      {/* Search */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
         <Input
@@ -161,7 +180,6 @@ const Index = () => {
         />
       </div>
 
-      {/* Bills Grid */}
       {billsLoading ? (
         <div className="text-center py-12">Loading bills...</div>
       ) : (
@@ -187,12 +205,54 @@ const Index = () => {
           })}
         </div>
       )}
+    </div>
+  );
 
-      {filteredBills.length === 0 && !billsLoading && (
-        <div className="text-center py-12">
-          <Receipt size={64} className="mx-auto text-gray-300 mb-4" />
-          <p className="text-xl text-gray-500">No bills found</p>
+  const renderWorkersView = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold text-gray-800">Workers</h2>
+        <div className="flex space-x-3">
+          <Button 
+            onClick={() => setCurrentView('add-wage')}
+            className="bg-blue-500 hover:bg-blue-600"
+          >
+            <DollarSign size={20} className="mr-2" />
+            Record Wage
+          </Button>
+          <Button 
+            onClick={() => setCurrentView('add-worker')}
+            className="bg-green-500 hover:bg-green-600"
+          >
+            <Plus size={20} className="mr-2" />
+            Add Worker
+          </Button>
         </div>
+      </div>
+
+      {workersLoading ? (
+        <div className="text-center py-12">Loading workers...</div>
+      ) : (
+        <>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {workers.map((worker) => (
+              <WorkerCard
+                key={worker.id}
+                worker={worker}
+                onDelete={() => handleDeleteWorker(worker.id)}
+              />
+            ))}
+          </div>
+
+          <div className="mt-12">
+            <h3 className="text-2xl font-bold text-gray-800 mb-6">Recent Wage Records</h3>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {wageRecords.slice(0, 6).map((record) => (
+                <WageRecordCard key={record.id} record={record} />
+              ))}
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
@@ -216,7 +276,13 @@ const Index = () => {
                   variant={currentView === 'bills' ? 'default' : 'ghost'}
                   onClick={() => setCurrentView('bills')}
                 >
-                  All Bills
+                  Bills
+                </Button>
+                <Button
+                  variant={currentView === 'workers' ? 'default' : 'ghost'}
+                  onClick={() => setCurrentView('workers')}
+                >
+                  Workers
                 </Button>
               </div>
             </div>
@@ -241,10 +307,23 @@ const Index = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {currentView === 'dashboard' && renderDashboard()}
         {currentView === 'bills' && renderBillsList()}
+        {currentView === 'workers' && renderWorkersView()}
         {currentView === 'add-bill' && (
           <AddBillForm
             onSave={() => setCurrentView('dashboard')}
             onCancel={() => setCurrentView('dashboard')}
+          />
+        )}
+        {currentView === 'add-worker' && (
+          <AddWorkerForm
+            onSave={() => setCurrentView('workers')}
+            onCancel={() => setCurrentView('workers')}
+          />
+        )}
+        {currentView === 'add-wage' && (
+          <AddWageForm
+            onSave={() => setCurrentView('workers')}
+            onCancel={() => setCurrentView('workers')}
           />
         )}
       </main>

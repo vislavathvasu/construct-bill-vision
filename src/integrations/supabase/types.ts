@@ -12,6 +12,7 @@ export type Database = {
       bills: {
         Row: {
           amount: number
+          bill_image_path: string | null
           bill_photo_url: string | null
           created_at: string
           date: string
@@ -24,6 +25,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          bill_image_path?: string | null
           bill_photo_url?: string | null
           created_at?: string
           date?: string
@@ -36,6 +38,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          bill_image_path?: string | null
           bill_photo_url?: string | null
           created_at?: string
           date?: string
@@ -66,6 +69,86 @@ export type Database = {
           icon_name?: string
           id?: string
           name?: string
+        }
+        Relationships: []
+      }
+      wage_records: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          hours_worked: number | null
+          id: string
+          notes: string | null
+          updated_at: string
+          user_id: string
+          worker_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          date?: string
+          hours_worked?: number | null
+          id?: string
+          notes?: string | null
+          updated_at?: string
+          user_id: string
+          worker_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          hours_worked?: number | null
+          id?: string
+          notes?: string | null
+          updated_at?: string
+          user_id?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wage_records_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workers: {
+        Row: {
+          address: string | null
+          created_at: string
+          daily_wage: number | null
+          id: string
+          name: string
+          phone: string | null
+          photo_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          daily_wage?: number | null
+          id?: string
+          name: string
+          phone?: string | null
+          photo_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          daily_wage?: number | null
+          id?: string
+          name?: string
+          phone?: string | null
+          photo_url?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

@@ -12,6 +12,7 @@ export interface DatabaseBill {
   date: string;
   location?: string;
   bill_photo_url?: string;
+  bill_image_path?: string;
   created_at: string;
   updated_at: string;
 }
@@ -51,6 +52,7 @@ export const useBills = () => {
     date: string;
     location?: string;
     bill_photo_url?: string;
+    bill_image_path?: string;
   }) => {
     if (!user) return;
 

@@ -3,8 +3,9 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Camera, Save, X } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import MaterialCard from './MaterialCard';
+import ImageUpload from './ImageUpload';
 import { materialTypes } from '../data/materials';
 import { useBills } from '@/hooks/useBills';
 
@@ -18,6 +19,8 @@ const AddBillForm: React.FC<AddBillFormProps> = ({ onSave, onCancel }) => {
   const [shopName, setShopName] = useState('');
   const [amount, setAmount] = useState('');
   const [location, setLocation] = useState('');
+  const [billImageUrl, setBillImageUrl] = useState('');
+  const [billImagePath, setBillImagePath] = useState('');
   const [loading, setLoading] = useState(false);
   const { addBill } = useBills();
 
@@ -34,6 +37,8 @@ const AddBillForm: React.FC<AddBillFormProps> = ({ onSave, onCancel }) => {
         amount: parseFloat(amount),
         date: new Date().toISOString().split('T')[0],
         location: location || undefined,
+        bill_photo_url: billImageUrl || undefined,
+        bill_image_path: billImagePath || undefined,
       });
       onSave();
     } catch (error) {
@@ -108,14 +113,17 @@ const AddBillForm: React.FC<AddBillFormProps> = ({ onSave, onCancel }) => {
           />
         </div>
 
-        {/* Photo Upload */}
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-          <Camera size={48} className="mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-600 mb-4">Take a photo of your bill</p>
-          <Button type="button" variant="outline">
-            <Camera size={16} className="mr-2" />
-            Capture Bill Photo
-          </Button>
+        {/* Bill Photo Upload */}
+        <div>
+          <Label className="text-lg font-semibold mb-4 block">Bill Photo</Label>
+          <ImageUpload
+            onImageUploaded={(url, path) => {
+              setBillImageUrl(url);
+              setBillImagePath(path);
+            }}
+            bucket="bill-photos"
+            folder="bills/"
+          />
         </div>
 
         <div className="flex space-x-4 pt-4">
