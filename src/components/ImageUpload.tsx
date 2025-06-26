@@ -5,7 +5,7 @@ import { Camera, Upload, X } from 'lucide-react';
 import { useImageUpload } from '@/hooks/useImageUpload';
 
 interface ImageUploadProps {
-  onImageUploaded: (imageUrl: string, imagePath: string) => void;
+  onImageUploaded: (imageUrl: string, imagePath?: string) => void;
   bucket: string;
   folder?: string;
   currentImage?: string;

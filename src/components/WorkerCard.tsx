@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Phone, MapPin, User, Trash2, IndianRupee } from 'lucide-react';
+import { Phone, User, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Worker } from '@/hooks/useWorkers';
 
@@ -17,20 +17,19 @@ const WorkerCard: React.FC<WorkerCardProps> = ({ worker, onDelete }) => {
           {worker.photo_url ? (
             <img 
               src={worker.photo_url} 
-              alt={worker.name}
-              className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+              alt="Worker"
+              className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
             />
           ) : (
-            <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
-              <User size={24} className="text-gray-500" />
+            <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center">
+              <User size={32} className="text-gray-500" />
             </div>
           )}
           <div>
-            <h3 className="font-semibold text-xl text-gray-800">{worker.name}</h3>
-            {worker.daily_wage && (
-              <div className="flex items-center space-x-1 text-green-600">
-                <IndianRupee size={16} />
-                <span className="font-medium">{worker.daily_wage}/day</span>
+            {worker.phone && (
+              <div className="flex items-center space-x-2 text-lg font-medium">
+                <Phone size={18} />
+                <span>{worker.phone}</span>
               </div>
             )}
           </div>
@@ -43,21 +42,6 @@ const WorkerCard: React.FC<WorkerCardProps> = ({ worker, onDelete }) => {
         >
           <Trash2 size={16} />
         </Button>
-      </div>
-      
-      <div className="space-y-2 text-sm text-gray-600">
-        {worker.phone && (
-          <div className="flex items-center space-x-2">
-            <Phone size={16} />
-            <span>{worker.phone}</span>
-          </div>
-        )}
-        {worker.address && (
-          <div className="flex items-center space-x-2">
-            <MapPin size={16} />
-            <span>{worker.address}</span>
-          </div>
-        )}
       </div>
     </div>
   );

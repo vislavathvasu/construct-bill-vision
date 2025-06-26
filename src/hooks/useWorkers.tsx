@@ -15,7 +15,7 @@ export interface Worker {
   updated_at: string;
 }
 
-export interface WageRecord {
+export interface ExpenditureRecord {
   id: string;
   worker_id: string;
   date: string;
@@ -28,7 +28,7 @@ export interface WageRecord {
 
 export const useWorkers = () => {
   const [workers, setWorkers] = useState<Worker[]>([]);
-  const [wageRecords, setWageRecords] = useState<WageRecord[]>([]);
+  const [expenditureRecords, setExpenditureRecords] = useState<ExpenditureRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -53,7 +53,7 @@ export const useWorkers = () => {
     }
   };
 
-  const fetchWageRecords = async () => {
+  const fetchExpenditureRecords = async () => {
     if (!user) return;
     
     try {
@@ -64,17 +64,18 @@ export const useWorkers = () => {
           workers (
             id,
             name,
-            photo_url
+            photo_url,
+            phone
           )
         `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setWageRecords(data || []);
+      setExpenditureRecords(data || []);
     } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to fetch wage records: " + error.message,
+        description: "Failed to fetch expenditure records: " + error.message,
         variant: "destructive",
       });
     } finally {
@@ -85,9 +86,7 @@ export const useWorkers = () => {
   const addWorker = async (workerData: {
     name: string;
     photo_url?: string;
-    daily_wage?: number;
     phone?: string;
-    address?: string;
   }) => {
     if (!user) return;
 
@@ -120,11 +119,10 @@ export const useWorkers = () => {
     }
   };
 
-  const addWageRecord = async (wageData: {
+  const addExpenditureRecord = async (expenditureData: {
     worker_id: string;
     date: string;
     amount: number;
-    hours_worked?: number;
     notes?: string;
   }) => {
     if (!user) return;
@@ -133,7 +131,7 @@ export const useWorkers = () => {
       const { data, error } = await supabase
         .from('wage_records')
         .insert([{
-          ...wageData,
+          ...expenditureData,
           user_id: user.id,
         }])
         .select(`
@@ -141,24 +139,25 @@ export const useWorkers = () => {
           workers (
             id,
             name,
-            photo_url
+            photo_url,
+            phone
           )
         `)
         .single();
 
       if (error) throw error;
       
-      setWageRecords(prev => [data, ...prev]);
+      setExpenditureRecords(prev => [data, ...prev]);
       toast({
         title: "Success!",
-        description: "Wage record added successfully.",
+        description: "Expenditure record added successfully.",
       });
       
       return data;
     } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to add wage record: " + error.message,
+        description: "Failed to add expenditure record: " + error.message,
         variant: "destructive",
       });
       throw error;
@@ -191,18 +190,18 @@ export const useWorkers = () => {
   useEffect(() => {
     if (user) {
       fetchWorkers();
-      fetchWageRecords();
+      fetchExpenditureRecords();
     }
   }, [user]);
 
   return {
     workers,
-    wageRecords,
+    expenditureRecords,
     loading,
     addWorker,
-    addWageRecord,
+    addExpenditureRecord,
     deleteWorker,
     refetchWorkers: fetchWorkers,
-    refetchWageRecords: fetchWageRecords,
+    refetchExpenditureRecords: fetchExpenditureRecords,
   };
 };

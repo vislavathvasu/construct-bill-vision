@@ -5,23 +5,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import MaterialCard from '@/components/MaterialCard';
 import BillCard from '@/components/BillCard';
+import BillViewModal from '@/components/BillViewModal';
 import AddBillForm from '@/components/AddBillForm';
 import AddWorkerForm from '@/components/AddWorkerForm';
-import AddWageForm from '@/components/AddWageForm';
+import AddExpenditureForm from '@/components/AddExpenditureForm';
 import WorkerCard from '@/components/WorkerCard';
-import WageRecordCard from '@/components/WageRecordCard';
+import ExpenditureRecordCard from '@/components/ExpenditureRecordCard';
 import AuthForm from '@/components/AuthForm';
 import { materialTypes } from '@/data/materials';
 import { useAuth } from '@/hooks/useAuth';
-import { useBills } from '@/hooks/useBills';
+import { useBills, DatabaseBill } from '@/hooks/useBills';
 import { useWorkers } from '@/hooks/useWorkers';
 
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
   const { bills, loading: billsLoading, deleteBill } = useBills();
-  const { workers, wageRecords, loading: workersLoading, deleteWorker } = useWorkers();
+  const { workers, expenditureRecords, loading: workersLoading, deleteWorker } = useWorkers();
   const [currentView, setCurrentView] = useState('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedBill, setSelectedBill] = useState<DatabaseBill | null>(null);
 
   if (authLoading) {
     return (
@@ -35,8 +37,17 @@ const Index = () => {
     return <AuthForm />;
   }
 
+  const today = new Date().toISOString().split('T')[0];
   const totalAmount = bills.reduce((sum, bill) => sum + bill.amount, 0);
-  const totalWages = wageRecords.reduce((sum, record) => sum + record.amount, 0);
+  const totalExpenditures = expenditureRecords.reduce((sum, record) => sum + record.amount, 0);
+  const todayExpenditures = expenditureRecords
+    .filter(record => record.date === today)
+    .reduce((sum, record) => sum + record.amount, 0);
+  const todayBills = bills
+    .filter(bill => bill.date === today)
+    .reduce((sum, bill) => sum + bill.amount, 0);
+  const todayTotal = todayBills + todayExpenditures;
+
   const filteredBills = bills.filter(bill => 
     bill.shop_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     bill.material.toLowerCase().includes(searchTerm.toLowerCase())
@@ -50,17 +61,21 @@ const Index = () => {
     deleteWorker(workerId);
   };
 
+  const handleViewBill = (bill: DatabaseBill) => {
+    setSelectedBill(bill);
+  };
+
   const renderDashboard = () => (
     <div className="space-y-8">
       {/* Header */}
       <div className="text-center">
         <h1 className="text-4xl font-bold text-gray-800 mb-2">Construction Manager</h1>
-        <p className="text-xl text-gray-600">Track bills, workers, and wages</p>
+        <p className="text-xl text-gray-600">Track bills, workers, and daily expenditures</p>
         <p className="text-sm text-gray-500 mt-2">Welcome, {user.email}</p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid md:grid-cols-4 gap-6">
+      <div className="grid md:grid-cols-5 gap-6">
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow-lg">
           <div className="flex items-center justify-between">
             <div>
@@ -94,10 +109,20 @@ const Index = () => {
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-xl shadow-lg">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-orange-100">Total Wages</p>
-              <p className="text-3xl font-bold">₹{totalWages.toLocaleString()}</p>
+              <p className="text-orange-100">Total Expenditures</p>
+              <p className="text-3xl font-bold">₹{totalExpenditures.toLocaleString()}</p>
             </div>
             <DollarSign size={48} className="text-orange-200" />
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-6 rounded-xl shadow-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-red-100">Today's Total</p>
+              <p className="text-3xl font-bold">₹{todayTotal.toLocaleString()}</p>
+            </div>
+            <Calendar size={48} className="text-red-200" />
           </div>
         </div>
       </div>
@@ -146,7 +171,7 @@ const Index = () => {
                     location: bill.location,
                     materialIcon: materialType?.icon || Receipt,
                   }}
-                  onView={() => console.log('View bill:', bill.id)}
+                  onView={() => handleViewBill(bill)}
                   onDelete={() => handleDeleteBill(bill.id)}
                 />
               );
@@ -198,7 +223,7 @@ const Index = () => {
                   location: bill.location,
                   materialIcon: materialType?.icon || Receipt,
                 }}
-                onView={() => console.log('View bill:', bill.id)}
+                onView={() => handleViewBill(bill)}
                 onDelete={() => handleDeleteBill(bill.id)}
               />
             );
@@ -211,14 +236,14 @@ const Index = () => {
   const renderWorkersView = () => (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold text-gray-800">Workers</h2>
+        <h2 className="text-3xl font-bold text-gray-800">Workers & Expenditures</h2>
         <div className="flex space-x-3">
           <Button 
-            onClick={() => setCurrentView('add-wage')}
+            onClick={() => setCurrentView('add-expenditure')}
             className="bg-blue-500 hover:bg-blue-600"
           >
             <DollarSign size={20} className="mr-2" />
-            Record Wage
+            Record Expenditure
           </Button>
           <Button 
             onClick={() => setCurrentView('add-worker')}
@@ -234,7 +259,7 @@ const Index = () => {
         <div className="text-center py-12">Loading workers...</div>
       ) : (
         <>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {workers.map((worker) => (
               <WorkerCard
                 key={worker.id}
@@ -245,10 +270,10 @@ const Index = () => {
           </div>
 
           <div className="mt-12">
-            <h3 className="text-2xl font-bold text-gray-800 mb-6">Recent Wage Records</h3>
+            <h3 className="text-2xl font-bold text-gray-800 mb-6">Recent Expenditure Records</h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {wageRecords.slice(0, 6).map((record) => (
-                <WageRecordCard key={record.id} record={record} />
+              {expenditureRecords.slice(0, 6).map((record) => (
+                <ExpenditureRecordCard key={record.id} record={record} />
               ))}
             </div>
           </div>
@@ -320,13 +345,21 @@ const Index = () => {
             onCancel={() => setCurrentView('workers')}
           />
         )}
-        {currentView === 'add-wage' && (
-          <AddWageForm
+        {currentView === 'add-expenditure' && (
+          <AddExpenditureForm
             onSave={() => setCurrentView('workers')}
             onCancel={() => setCurrentView('workers')}
           />
         )}
       </main>
+
+      {/* Bill View Modal */}
+      {selectedBill && (
+        <BillViewModal
+          bill={selectedBill}
+          onClose={() => setSelectedBill(null)}
+        />
+      )}
     </div>
   );
 };
