@@ -3,7 +3,11 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Save, X } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Save, X, Calendar as CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 import MaterialCard from './MaterialCard';
 import ImageUpload from './ImageUpload';
 import { materialTypes } from '../data/materials';
@@ -21,6 +25,7 @@ const AddBillForm: React.FC<AddBillFormProps> = ({ onSave, onCancel }) => {
   const [location, setLocation] = useState('');
   const [billImageUrl, setBillImageUrl] = useState('');
   const [billImagePath, setBillImagePath] = useState('');
+  const [date, setDate] = useState<Date>(new Date());
   const [loading, setLoading] = useState(false);
   const { addBill } = useBills();
 
@@ -35,7 +40,7 @@ const AddBillForm: React.FC<AddBillFormProps> = ({ onSave, onCancel }) => {
         shop_name: shopName,
         material: materialData?.name || '',
         amount: parseFloat(amount),
-        date: new Date().toISOString().split('T')[0],
+        date: date.toISOString().split('T')[0],
         location: location || undefined,
         bill_photo_url: billImageUrl || undefined,
         bill_image_path: billImagePath || undefined,
@@ -102,15 +107,43 @@ const AddBillForm: React.FC<AddBillFormProps> = ({ onSave, onCancel }) => {
           </div>
         </div>
 
-        <div>
-          <Label htmlFor="location" className="text-lg font-semibold">Location (Optional)</Label>
-          <Input
-            id="location"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder="Enter location"
-            className="mt-2 text-lg p-4"
-          />
+        <div className="grid md:grid-cols-2 gap-6">
+          <div>
+            <Label htmlFor="location" className="text-lg font-semibold">Location (Optional)</Label>
+            <Input
+              id="location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="Enter location"
+              className="mt-2 text-lg p-4"
+            />
+          </div>
+          <div>
+            <Label className="text-lg font-semibold">Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full mt-2 text-lg p-4 justify-start text-left font-normal",
+                    !date && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? format(date, "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={(selectedDate) => selectedDate && setDate(selectedDate)}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
         </div>
 
         {/* Bill Photo Upload */}
