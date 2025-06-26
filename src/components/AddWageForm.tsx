@@ -15,7 +15,6 @@ const AddWageForm: React.FC<AddWageFormProps> = ({ onSave, onCancel }) => {
   const [selectedWorker, setSelectedWorker] = useState('');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [hoursWorked, setHoursWorked] = useState('8');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const { workers, addExpenditureRecord } = useWorkers();
@@ -30,7 +29,6 @@ const AddWageForm: React.FC<AddWageFormProps> = ({ onSave, onCancel }) => {
         worker_id: selectedWorker,
         amount: parseFloat(amount),
         date,
-        hours_worked: hoursWorked ? parseFloat(hoursWorked) : undefined,
         notes: notes || undefined,
       });
       onSave();
@@ -44,7 +42,7 @@ const AddWageForm: React.FC<AddWageFormProps> = ({ onSave, onCancel }) => {
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Record Daily Wage</h2>
+        <h2 className="text-2xl font-bold text-gray-800">Record Daily Expenditure</h2>
         <Button onClick={onCancel} variant="outline" size="sm">
           <X size={16} className="mr-2" />
           Cancel
@@ -70,20 +68,17 @@ const AddWageForm: React.FC<AddWageFormProps> = ({ onSave, onCancel }) => {
                   {worker.photo_url ? (
                     <img 
                       src={worker.photo_url} 
-                      alt={worker.name}
+                      alt="Worker"
                       className="w-12 h-12 rounded-full object-cover"
                     />
                   ) : (
                     <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                      <span className="text-gray-500 font-bold">
-                        {worker.name.charAt(0).toUpperCase()}
-                      </span>
+                      <span className="text-gray-500 text-2xl">👤</span>
                     </div>
                   )}
                   <div>
-                    <p className="font-semibold">{worker.name}</p>
-                    {worker.daily_wage && (
-                      <p className="text-sm text-gray-500">₹{worker.daily_wage}/day</p>
+                    {worker.phone && (
+                      <p className="text-sm font-medium">{worker.phone}</p>
                     )}
                   </div>
                 </div>
@@ -92,7 +87,7 @@ const AddWageForm: React.FC<AddWageFormProps> = ({ onSave, onCancel }) => {
           </div>
         </div>
 
-        {/* Wage Details */}
+        {/* Amount and Date */}
         <div className="grid md:grid-cols-2 gap-6">
           <div>
             <Label htmlFor="amount" className="text-lg font-semibold">Amount (₹) *</Label>
@@ -101,7 +96,7 @@ const AddWageForm: React.FC<AddWageFormProps> = ({ onSave, onCancel }) => {
               type="number"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder="Enter wage amount"
+              placeholder="Enter amount"
               className="mt-2 text-lg p-4"
               required
             />
@@ -119,29 +114,15 @@ const AddWageForm: React.FC<AddWageFormProps> = ({ onSave, onCancel }) => {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <Label htmlFor="hoursWorked" className="text-lg font-semibold">Hours Worked</Label>
-            <Input
-              id="hoursWorked"
-              type="number"
-              step="0.5"
-              value={hoursWorked}
-              onChange={(e) => setHoursWorked(e.target.value)}
-              placeholder="Enter hours worked"
-              className="mt-2 text-lg p-4"
-            />
-          </div>
-          <div>
-            <Label htmlFor="notes" className="text-lg font-semibold">Notes</Label>
-            <Input
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Additional notes"
-              className="mt-2 text-lg p-4"
-            />
-          </div>
+        <div>
+          <Label htmlFor="notes" className="text-lg font-semibold">Notes</Label>
+          <Input
+            id="notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Reason for payment"
+            className="mt-2 text-lg p-4"
+          />
         </div>
 
         <div className="flex space-x-4 pt-4">
@@ -151,7 +132,7 @@ const AddWageForm: React.FC<AddWageFormProps> = ({ onSave, onCancel }) => {
             disabled={!selectedWorker || !amount || loading}
           >
             <Save size={20} className="mr-2" />
-            {loading ? 'Saving...' : 'Record Wage'}
+            {loading ? 'Saving...' : 'Record Payment'}
           </Button>
         </div>
       </form>
