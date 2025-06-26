@@ -18,7 +18,7 @@ const AddWageForm: React.FC<AddWageFormProps> = ({ onSave, onCancel }) => {
   const [hoursWorked, setHoursWorked] = useState('8');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
-  const { workers, addWageRecord } = useWorkers();
+  const { workers, addExpenditureRecord } = useWorkers();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +26,7 @@ const AddWageForm: React.FC<AddWageFormProps> = ({ onSave, onCancel }) => {
 
     setLoading(true);
     try {
-      await addWageRecord({
+      await addExpenditureRecord({
         worker_id: selectedWorker,
         amount: parseFloat(amount),
         date,

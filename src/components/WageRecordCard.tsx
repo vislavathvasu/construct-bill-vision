@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { Calendar, Clock, User, StickyNote } from 'lucide-react';
-import { WageRecord } from '@/hooks/useWorkers';
+import { ExpenditureRecord } from '@/hooks/useWorkers';
 
 interface WageRecordCardProps {
-  record: WageRecord;
+  record: ExpenditureRecord;
 }
 
 const WageRecordCard: React.FC<WageRecordCardProps> = ({ record }) => {
