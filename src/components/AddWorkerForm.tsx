@@ -40,9 +40,9 @@ const AddWorkerForm: React.FC<AddWorkerFormProps> = ({ onSave, onCancel }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Add New Worker</h2>
+    <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 max-w-2xl mx-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Add New Worker</h2>
         <Button onClick={onCancel} variant="outline" size="sm">
           <X size={16} className="mr-2" />
           Cancel
@@ -52,7 +52,7 @@ const AddWorkerForm: React.FC<AddWorkerFormProps> = ({ onSave, onCancel }) => {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Worker Photo */}
         <div>
-          <Label className="text-lg font-semibold mb-4 block">Worker Photo</Label>
+          <Label className="text-base sm:text-lg font-semibold mb-4 block">Worker Photo</Label>
           <ImageUpload
             onImageUploaded={(url) => setPhotoUrl(url)}
             bucket="worker-photos"
@@ -62,33 +62,33 @@ const AddWorkerForm: React.FC<AddWorkerFormProps> = ({ onSave, onCancel }) => {
 
         {/* Worker Name with Voice Input */}
         <div>
-          <Label htmlFor="name" className="text-lg font-semibold">Worker Name</Label>
-          <div className="mt-2 space-y-2">
+          <Label htmlFor="name" className="text-base sm:text-lg font-semibold">Worker Name</Label>
+          <div className="mt-2 space-y-3">
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter worker name"
-              className="text-lg p-4"
+              className="text-base sm:text-lg p-3 sm:p-4 h-12 sm:h-auto"
             />
             <VoiceInput
               onResult={(text) => setName(text)}
               placeholder="Click to speak name"
-              className="w-full"
+              className="w-full h-12"
             />
           </div>
         </div>
 
         {/* Phone Number with Voice Input */}
         <div>
-          <Label htmlFor="phone" className="text-lg font-semibold">Phone Number</Label>
-          <div className="mt-2 space-y-2">
+          <Label htmlFor="phone" className="text-base sm:text-lg font-semibold">Phone Number</Label>
+          <div className="mt-2 space-y-3">
             <Input
               id="phone"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="Enter phone number"
-              className="text-lg p-4"
+              className="text-base sm:text-lg p-3 sm:p-4 h-12 sm:h-auto"
             />
             <VoiceInput
               onResult={(text) => {
@@ -97,15 +97,15 @@ const AddWorkerForm: React.FC<AddWorkerFormProps> = ({ onSave, onCancel }) => {
                 setPhone(numbers);
               }}
               placeholder="Click to speak phone number"
-              className="w-full"
+              className="w-full h-12"
             />
           </div>
         </div>
 
-        <div className="flex space-x-4 pt-4">
+        <div className="pt-4">
           <Button 
             type="submit" 
-            className="flex-1 bg-green-500 hover:bg-green-600 text-white text-lg py-3"
+            className="w-full bg-green-500 hover:bg-green-600 text-white text-base sm:text-lg py-3 sm:py-4 h-12 sm:h-auto"
             disabled={(!name && !phone && !photoUrl) || loading}
           >
             <Save size={20} className="mr-2" />
