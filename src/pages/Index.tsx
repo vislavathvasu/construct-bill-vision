@@ -97,6 +97,13 @@ const Index = () => {
     setSelectedWorker(worker);
   };
 
+  const handleWorkerClickById = (workerId: string) => {
+    const worker = workers.find(w => w.id === workerId);
+    if (worker) {
+      setSelectedWorker(worker);
+    }
+  };
+
   const handleStatCardClick = (type: string) => {
     switch (type) {
       case 'bills':
@@ -228,6 +235,32 @@ const Index = () => {
           </div>
         )}
       </div>
+
+      {/* Recent Expenditure Records */}
+      <div>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">Recent Expenditure Records</h2>
+          <Button 
+            onClick={() => setCurrentView('workers')}
+            variant="outline"
+          >
+            View All Records
+          </Button>
+        </div>
+        {workersLoading ? (
+          <div className="text-center py-8">Loading expenditure records...</div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {expenditureRecords.slice(0, 6).map((record) => (
+              <ExpenditureRecordCard 
+                key={record.id} 
+                record={record}
+                onWorkerClick={handleWorkerClickById}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 
@@ -345,7 +378,11 @@ const Index = () => {
             <h3 className="text-2xl font-bold text-gray-800 mb-6">Recent Expenditure Records</h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {expenditureRecords.slice(0, 6).map((record) => (
-                <ExpenditureRecordCard key={record.id} record={record} />
+                <ExpenditureRecordCard 
+                  key={record.id} 
+                  record={record}
+                  onWorkerClick={handleWorkerClickById}
+                />
               ))}
             </div>
           </div>
@@ -548,6 +585,32 @@ const Index = () => {
                 </div>
               )}
             </div>
+
+            {/* Recent Expenditure Records */}
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-800">Recent Expenditure Records</h2>
+                <Button 
+                  onClick={() => setCurrentView('workers')}
+                  variant="outline"
+                >
+                  View All Records
+                </Button>
+              </div>
+              {workersLoading ? (
+                <div className="text-center py-8">Loading expenditure records...</div>
+              ) : (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {expenditureRecords.slice(0, 6).map((record) => (
+                    <ExpenditureRecordCard 
+                      key={record.id} 
+                      record={record}
+                      onWorkerClick={handleWorkerClickById}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -665,7 +728,11 @@ const Index = () => {
                   <h3 className="text-2xl font-bold text-gray-800 mb-6">Recent Expenditure Records</h3>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {expenditureRecords.slice(0, 6).map((record) => (
-                      <ExpenditureRecordCard key={record.id} record={record} />
+                      <ExpenditureRecordCard 
+                        key={record.id} 
+                        record={record}
+                        onWorkerClick={handleWorkerClickById}
+                      />
                     ))}
                   </div>
                 </div>

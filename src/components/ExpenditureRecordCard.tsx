@@ -5,9 +5,16 @@ import { ExpenditureRecord } from '@/hooks/useWorkers';
 
 interface ExpenditureRecordCardProps {
   record: ExpenditureRecord;
+  onWorkerClick?: (workerId: string) => void;
 }
 
-const ExpenditureRecordCard: React.FC<ExpenditureRecordCardProps> = ({ record }) => {
+const ExpenditureRecordCard: React.FC<ExpenditureRecordCardProps> = ({ record, onWorkerClick }) => {
+  const handleWorkerClick = () => {
+    if (onWorkerClick && record.worker_id) {
+      onWorkerClick(record.worker_id);
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md p-4 border border-gray-100">
       <div className="flex items-start justify-between mb-3">
@@ -15,7 +22,7 @@ const ExpenditureRecordCard: React.FC<ExpenditureRecordCardProps> = ({ record })
           {record.worker?.photo_url ? (
             <img 
               src={record.worker.photo_url} 
-              alt="Worker"
+              alt={record.worker.name || 'Worker'}
               className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
             />
           ) : (
@@ -24,7 +31,12 @@ const ExpenditureRecordCard: React.FC<ExpenditureRecordCardProps> = ({ record })
             </div>
           )}
           <div>
-            <h4 className="font-semibold text-gray-800">{record.worker?.name || 'Unknown Worker'}</h4>
+            <h4 
+              className={`font-semibold text-gray-800 ${onWorkerClick ? 'cursor-pointer hover:text-blue-600 hover:underline' : ''}`}
+              onClick={handleWorkerClick}
+            >
+              {record.worker?.name || 'Unknown Worker'}
+            </h4>
             {record.worker?.phone && (
               <p className="text-sm text-gray-600">{record.worker.phone}</p>
             )}
