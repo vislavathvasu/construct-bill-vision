@@ -1,16 +1,17 @@
 
 import React from 'react';
-import { Calendar, MapPin, Receipt, Trash2 } from 'lucide-react';
+import { Calendar, MapPin, Receipt, Trash2, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Bill } from '@/types/bill';
 
 interface BillCardProps {
   bill: Bill;
   onView: () => void;
+  onEdit: () => void;
   onDelete: () => void;
 }
 
-const BillCard: React.FC<BillCardProps> = ({ bill, onView, onDelete }) => {
+const BillCard: React.FC<BillCardProps> = ({ bill, onView, onEdit, onDelete }) => {
   const IconComponent = bill.materialIcon;
   
   return (
@@ -43,13 +44,20 @@ const BillCard: React.FC<BillCardProps> = ({ bill, onView, onDelete }) => {
         )}
       </div>
       
-      <div className="flex space-x-3">
+      <div className="flex space-x-2">
         <Button 
           onClick={onView}
           className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
         >
           <Receipt size={16} className="mr-2" />
-          View Bill
+          View
+        </Button>
+        <Button 
+          onClick={onEdit}
+          variant="outline"
+          className="px-4 text-blue-500 border-blue-200 hover:bg-blue-50"
+        >
+          <Edit size={16} />
         </Button>
         <Button 
           onClick={onDelete}

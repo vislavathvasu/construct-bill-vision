@@ -1,21 +1,24 @@
 import React, { useState } from 'react';
-import { Plus, Receipt, Search, BarChart3, Calendar, LogOut, Users, DollarSign, FileText } from 'lucide-react';
+import { Plus, Receipt, Search, BarChart3, Calendar, LogOut, Users, DollarSign, FileText, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import MaterialCard from '@/components/MaterialCard';
 import BillCard from '@/components/BillCard';
 import BillViewModal from '@/components/BillViewModal';
 import AddBillForm from '@/components/AddBillForm';
+import EditBillForm from '@/components/EditBillForm';
 import AddWorkerForm from '@/components/AddWorkerForm';
 import AddExpenditureForm from '@/components/AddExpenditureForm';
 import WorkerCard from '@/components/WorkerCard';
+import WorkerDetailModal from '@/components/WorkerDetailModal';
 import ExpenditureRecordCard from '@/components/ExpenditureRecordCard';
 import MonthlyReports from '@/components/MonthlyReports';
+import DateRangeFilter from '@/components/DateRangeFilter';
 import AuthForm from '@/components/AuthForm';
 import { materialTypes } from '@/data/materials';
 import { useAuth } from '@/hooks/useAuth';
 import { useBills, DatabaseBill } from '@/hooks/useBills';
-import { useWorkers } from '@/hooks/useWorkers';
+import { useWorkers, Worker } from '@/hooks/useWorkers';
 
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -23,7 +26,12 @@ const Index = () => {
   const { workers, expenditureRecords, loading: workersLoading, deleteWorker } = useWorkers();
   const [currentView, setCurrentView] = useState('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
+  const [workerSearchTerm, setWorkerSearchTerm] = useState('');
   const [selectedBill, setSelectedBill] = useState<DatabaseBill | null>(null);
+  const [editingBill, setEditingBill] = useState<DatabaseBill | null>(null);
+  const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
 
   if (authLoading) {
     return (
@@ -48,9 +56,25 @@ const Index = () => {
     .reduce((sum, bill) => sum + bill.amount, 0);
   const todayTotal = todayBills + todayExpenditures;
 
-  const filteredBills = bills.filter(bill => 
+  // Filter bills by search term and date range
+  let filteredBills = bills.filter(bill => 
     bill.shop_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     bill.material.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (startDate || endDate) {
+    filteredBills = filteredBills.filter(bill => {
+      const billDate = new Date(bill.date);
+      if (startDate && billDate < startDate) return false;
+      if (endDate && billDate > endDate) return false;
+      return true;
+    });
+  }
+
+  // Filter workers by search term
+  const filteredWorkers = workers.filter(worker =>
+    worker.name.toLowerCase().includes(workerSearchTerm.toLowerCase()) ||
+    (worker.phone && worker.phone.includes(workerSearchTerm))
   );
 
   const handleDeleteBill = (billId: string) => {
@@ -63,6 +87,30 @@ const Index = () => {
 
   const handleViewBill = (bill: DatabaseBill) => {
     setSelectedBill(bill);
+  };
+
+  const handleEditBill = (bill: DatabaseBill) => {
+    setEditingBill(bill);
+  };
+
+  const handleWorkerClick = (worker: Worker) => {
+    setSelectedWorker(worker);
+  };
+
+  const handleStatCardClick = (type: string) => {
+    switch (type) {
+      case 'bills':
+        setCurrentView('bills');
+        break;
+      case 'workers':
+        setCurrentView('workers');
+        break;
+      case 'reports':
+        setCurrentView('reports');
+        break;
+      default:
+        break;
+    }
   };
 
   const renderDashboard = () => (
@@ -172,6 +220,7 @@ const Index = () => {
                     materialIcon: materialType?.icon || Receipt,
                   }}
                   onView={() => handleViewBill(bill)}
+                  onEdit={() => handleEditBill(bill)}
                   onDelete={() => handleDeleteBill(bill.id)}
                 />
               );
@@ -205,6 +254,17 @@ const Index = () => {
         />
       </div>
 
+      <DateRangeFilter
+        startDate={startDate}
+        endDate={endDate}
+        onStartDateChange={setStartDate}
+        onEndDateChange={setEndDate}
+        onClear={() => {
+          setStartDate(null);
+          setEndDate(null);
+        }}
+      />
+
       {billsLoading ? (
         <div className="text-center py-12">Loading bills...</div>
       ) : (
@@ -224,6 +284,7 @@ const Index = () => {
                   materialIcon: materialType?.icon || Receipt,
                 }}
                 onView={() => handleViewBill(bill)}
+                onEdit={() => handleEditBill(bill)}
                 onDelete={() => handleDeleteBill(bill.id)}
               />
             );
@@ -255,15 +316,26 @@ const Index = () => {
         </div>
       </div>
 
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+        <Input
+          placeholder="Search workers by name or phone..."
+          value={workerSearchTerm}
+          onChange={(e) => setWorkerSearchTerm(e.target.value)}
+          className="pl-10 text-lg py-3"
+        />
+      </div>
+
       {workersLoading ? (
         <div className="text-center py-12">Loading workers...</div>
       ) : (
         <>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {workers.map((worker) => (
+            {filteredWorkers.map((worker) => (
               <WorkerCard
                 key={worker.id}
                 worker={worker}
+                onClick={() => handleWorkerClick(worker)}
                 onDelete={() => handleDeleteWorker(worker.id)}
               />
             ))}
@@ -355,9 +427,12 @@ const Index = () => {
               <p className="text-sm text-gray-500 mt-2">Welcome, {user.email}</p>
             </div>
 
-            {/* Stats Cards */}
+            {/* Stats Cards - Now clickable */}
             <div className="grid md:grid-cols-5 gap-6">
-              <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow-lg">
+              <div 
+                className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-xl shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+                onClick={() => handleStatCardClick('bills')}
+              >
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-blue-100">Total Bills</p>
@@ -367,7 +442,10 @@ const Index = () => {
                 </div>
               </div>
               
-              <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl shadow-lg">
+              <div 
+                className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+                onClick={() => handleStatCardClick('bills')}
+              >
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-green-100">Bill Amount</p>
@@ -377,7 +455,10 @@ const Index = () => {
                 </div>
               </div>
               
-              <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-xl shadow-lg">
+              <div 
+                className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-xl shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+                onClick={() => handleStatCardClick('workers')}
+              >
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-purple-100">Workers</p>
@@ -387,7 +468,10 @@ const Index = () => {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-xl shadow-lg">
+              <div 
+                className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-xl shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+                onClick={() => handleStatCardClick('workers')}
+              >
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-orange-100">Total Expenditures</p>
@@ -397,7 +481,10 @@ const Index = () => {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-6 rounded-xl shadow-lg">
+              <div 
+                className="bg-gradient-to-r from-red-500 to-red-600 text-white p-6 rounded-xl shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+                onClick={() => handleStatCardClick('reports')}
+              >
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-red-100">Today's Total</p>
@@ -453,6 +540,7 @@ const Index = () => {
                           materialIcon: materialType?.icon || Receipt,
                         }}
                         onView={() => handleViewBill(bill)}
+                        onEdit={() => handleEditBill(bill)}
                         onDelete={() => handleDeleteBill(bill.id)}
                       />
                     );
@@ -462,6 +550,7 @@ const Index = () => {
             </div>
           </div>
         )}
+
         {currentView === 'bills' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -485,6 +574,17 @@ const Index = () => {
               />
             </div>
 
+            <DateRangeFilter
+              startDate={startDate}
+              endDate={endDate}
+              onStartDateChange={setStartDate}
+              onEndDateChange={setEndDate}
+              onClear={() => {
+                setStartDate(null);
+                setEndDate(null);
+              }}
+            />
+
             {billsLoading ? (
               <div className="text-center py-12">Loading bills...</div>
             ) : (
@@ -504,6 +604,7 @@ const Index = () => {
                         materialIcon: materialType?.icon || Receipt,
                       }}
                       onView={() => handleViewBill(bill)}
+                      onEdit={() => handleEditBill(bill)}
                       onDelete={() => handleDeleteBill(bill.id)}
                     />
                   );
@@ -512,6 +613,7 @@ const Index = () => {
             )}
           </div>
         )}
+
         {currentView === 'workers' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -534,15 +636,26 @@ const Index = () => {
               </div>
             </div>
 
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <Input
+                placeholder="Search workers by name or phone..."
+                value={workerSearchTerm}
+                onChange={(e) => setWorkerSearchTerm(e.target.value)}
+                className="pl-10 text-lg py-3"
+              />
+            </div>
+
             {workersLoading ? (
               <div className="text-center py-12">Loading workers...</div>
             ) : (
               <>
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {workers.map((worker) => (
+                  {filteredWorkers.map((worker) => (
                     <WorkerCard
                       key={worker.id}
                       worker={worker}
+                      onClick={() => handleWorkerClick(worker)}
                       onDelete={() => handleDeleteWorker(worker.id)}
                     />
                   ))}
@@ -560,19 +673,23 @@ const Index = () => {
             )}
           </div>
         )}
+
         {currentView === 'reports' && renderReportsView()}
+
         {currentView === 'add-bill' && (
           <AddBillForm
             onSave={() => setCurrentView('dashboard')}
             onCancel={() => setCurrentView('dashboard')}
           />
         )}
+
         {currentView === 'add-worker' && (
           <AddWorkerForm
             onSave={() => setCurrentView('workers')}
             onCancel={() => setCurrentView('workers')}
           />
         )}
+
         {currentView === 'add-expenditure' && (
           <AddExpenditureForm
             onSave={() => setCurrentView('workers')}
@@ -581,11 +698,30 @@ const Index = () => {
         )}
       </main>
 
-      {/* Bill View Modal */}
+      {/* Modals */}
       {selectedBill && (
         <BillViewModal
           bill={selectedBill}
           onClose={() => setSelectedBill(null)}
+        />
+      )}
+
+      {editingBill && (
+        <EditBillForm
+          bill={editingBill}
+          onSave={() => {
+            setEditingBill(null);
+            setCurrentView('bills');
+          }}
+          onCancel={() => setEditingBill(null)}
+        />
+      )}
+
+      {selectedWorker && (
+        <WorkerDetailModal
+          worker={selectedWorker}
+          expenditureRecords={expenditureRecords}
+          onClose={() => setSelectedWorker(null)}
         />
       )}
     </div>

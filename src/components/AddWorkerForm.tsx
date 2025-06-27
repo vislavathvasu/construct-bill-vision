@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Save, X } from 'lucide-react';
 import ImageUpload from './ImageUpload';
+import VoiceInput from './VoiceInput';
 import { useWorkers } from '@/hooks/useWorkers';
 
 interface AddWorkerFormProps {
@@ -13,6 +14,7 @@ interface AddWorkerFormProps {
 }
 
 const AddWorkerForm: React.FC<AddWorkerFormProps> = ({ onSave, onCancel }) => {
+  const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   const [loading, setLoading] = useState(false);
@@ -20,12 +22,12 @@ const AddWorkerForm: React.FC<AddWorkerFormProps> = ({ onSave, onCancel }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!phone && !photoUrl) return;
+    if (!name && !phone && !photoUrl) return;
 
     setLoading(true);
     try {
       await addWorker({
-        name: phone || 'Worker', // Use phone as identifier
+        name: name || 'Worker',
         phone: phone || undefined,
         photo_url: photoUrl || undefined,
       });
@@ -58,23 +60,53 @@ const AddWorkerForm: React.FC<AddWorkerFormProps> = ({ onSave, onCancel }) => {
           />
         </div>
 
-        {/* Phone Number */}
+        {/* Worker Name with Voice Input */}
+        <div>
+          <Label htmlFor="name" className="text-lg font-semibold">Worker Name</Label>
+          <div className="mt-2 space-y-2">
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter worker name"
+              className="text-lg p-4"
+            />
+            <VoiceInput
+              onResult={(text) => setName(text)}
+              placeholder="Click to speak name"
+              className="w-full"
+            />
+          </div>
+        </div>
+
+        {/* Phone Number with Voice Input */}
         <div>
           <Label htmlFor="phone" className="text-lg font-semibold">Phone Number</Label>
-          <Input
-            id="phone"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="Enter phone number"
-            className="mt-2 text-lg p-4"
-          />
+          <div className="mt-2 space-y-2">
+            <Input
+              id="phone"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="Enter phone number"
+              className="text-lg p-4"
+            />
+            <VoiceInput
+              onResult={(text) => {
+                // Extract numbers from speech
+                const numbers = text.replace(/\D/g, '');
+                setPhone(numbers);
+              }}
+              placeholder="Click to speak phone number"
+              className="w-full"
+            />
+          </div>
         </div>
 
         <div className="flex space-x-4 pt-4">
           <Button 
             type="submit" 
             className="flex-1 bg-green-500 hover:bg-green-600 text-white text-lg py-3"
-            disabled={(!phone && !photoUrl) || loading}
+            disabled={(!name && !phone && !photoUrl) || loading}
           >
             <Save size={20} className="mr-2" />
             {loading ? 'Saving...' : 'Save Worker'}

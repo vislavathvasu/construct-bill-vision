@@ -85,6 +85,42 @@ export const useBills = () => {
     }
   };
 
+  const updateBill = async (billId: string, billData: {
+    shop_name: string;
+    material: string;
+    amount: number;
+    date: string;
+    location?: string;
+    bill_photo_url?: string;
+    bill_image_path?: string;
+  }) => {
+    try {
+      const { data, error } = await supabase
+        .from('bills')
+        .update(billData)
+        .eq('id', billId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      setBills(prev => prev.map(bill => bill.id === billId ? data : bill));
+      toast({
+        title: "Success!",
+        description: "Bill updated successfully.",
+      });
+      
+      return data;
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to update bill: " + error.message,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   const deleteBill = async (billId: string) => {
     try {
       const { error } = await supabase
@@ -116,6 +152,7 @@ export const useBills = () => {
     bills,
     loading,
     addBill,
+    updateBill,
     deleteBill,
     refetch: fetchBills,
   };
