@@ -158,7 +158,7 @@ const EditBillForm: React.FC<EditBillFormProps> = ({ bill, onSave, onCancel }) =
             }}
             bucket="bill-photos"
             folder="bills/"
-            initialImageUrl={billImageUrl}
+            currentImage={billImageUrl}
           />
         </div>
 

@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { mic, micOff } from 'lucide-react';
+import { Mic, MicOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface VoiceInputProps {
@@ -84,7 +84,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onResult, placeholder = "Click 
         size="sm"
         className="shrink-0"
       >
-        {isListening ? <micOff size={16} /> : <mic size={16} />}
+        {isListening ? <MicOff size={16} /> : <Mic size={16} />}
         {isListening ? 'Stop' : 'Speak'}
       </Button>
       {transcript && (
