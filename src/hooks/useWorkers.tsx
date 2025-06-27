@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -61,7 +60,7 @@ export const useWorkers = () => {
         .from('wage_records')
         .select(`
           *,
-          workers (
+          worker:workers!inner (
             id,
             name,
             photo_url,
@@ -164,6 +163,39 @@ export const useWorkers = () => {
     }
   };
 
+  const updateWorker = async (workerId: string, workerData: {
+    name: string;
+    photo_url?: string;
+    phone?: string;
+    address?: string;
+  }) => {
+    try {
+      const { data, error } = await supabase
+        .from('workers')
+        .update(workerData)
+        .eq('id', workerId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      setWorkers(prev => prev.map(worker => worker.id === workerId ? data : worker));
+      toast({
+        title: "Success!",
+        description: "Worker updated successfully.",
+      });
+      
+      return data;
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to update worker: " + error.message,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   const deleteWorker = async (workerId: string) => {
     try {
       const { error } = await supabase
@@ -200,6 +232,7 @@ export const useWorkers = () => {
     loading,
     addWorker,
     addExpenditureRecord,
+    updateWorker,
     deleteWorker,
     refetchWorkers: fetchWorkers,
     refetchExpenditureRecords: fetchExpenditureRecords,

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Phone, User, Trash2, MessageCircle } from 'lucide-react';
+import { Phone, User, Trash2, MessageCircle, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Worker } from '@/hooks/useWorkers';
 
@@ -8,9 +8,10 @@ interface WorkerCardProps {
   worker: Worker;
   onDelete: () => void;
   onClick: () => void;
+  onEdit: () => void;
 }
 
-const WorkerCard: React.FC<WorkerCardProps> = ({ worker, onDelete, onClick }) => {
+const WorkerCard: React.FC<WorkerCardProps> = ({ worker, onDelete, onClick, onEdit }) => {
   const openWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (worker.phone) {
@@ -58,6 +59,17 @@ const WorkerCard: React.FC<WorkerCardProps> = ({ worker, onDelete, onClick }) =>
               <MessageCircle size={16} />
             </Button>
           )}
+          <Button 
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit();
+            }}
+            variant="outline"
+            size="sm"
+            className="text-blue-500 border-blue-200 hover:bg-blue-50"
+          >
+            <Edit size={16} />
+          </Button>
           <Button 
             onClick={(e) => {
               e.stopPropagation();

@@ -84,6 +84,7 @@ export const generateMonthlyPDF = (
             <thead>
               <tr>
                 <th>Date</th>
+                <th>Worker Name</th>
                 <th>Worker Phone</th>
                 <th>Amount (₹)</th>
                 <th>Notes</th>
@@ -93,6 +94,7 @@ export const generateMonthlyPDF = (
               ${monthlyExpenditures.map(exp => `
                 <tr>
                   <td>${new Date(exp.date).toLocaleDateString('en-IN')}</td>
+                  <td>${exp.worker?.name || 'Unknown Worker'}</td>
                   <td>${exp.worker?.phone || '-'}</td>
                   <td>₹${exp.amount.toLocaleString()}</td>
                   <td>${exp.notes || '-'}</td>
