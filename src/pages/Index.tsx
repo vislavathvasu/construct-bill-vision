@@ -127,12 +127,7 @@ const Index = () => {
   };
 
   const renderReportsView = () => {
-    return (
-      <MonthlyReports 
-        bills={bills}
-        expenditureRecords={expenditureRecords}
-      />
-    );
+    return <MonthlyReports />;
   };
 
   return (
