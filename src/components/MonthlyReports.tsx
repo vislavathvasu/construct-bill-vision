@@ -107,7 +107,8 @@ const MonthlyReports: React.FC = () => {
                     </div>
                   )}
                   <div>
-                    <p className="font-medium">{worker.phone || 'No Phone'}</p>
+                    <p className="font-medium text-lg">{worker.name}</p>
+                    <p className="text-sm text-gray-500">{worker.phone || 'No Phone'}</p>
                     <p className="text-sm text-gray-500">{workerRecords.length} payments</p>
                   </div>
                 </div>

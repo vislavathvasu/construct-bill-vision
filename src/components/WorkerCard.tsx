@@ -3,15 +3,17 @@ import React from 'react';
 import { Phone, User, Trash2, MessageCircle, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Worker } from '@/hooks/useWorkers';
+import { useNavigate } from 'react-router-dom';
 
 interface WorkerCardProps {
   worker: Worker;
   onDelete: () => void;
   onClick: () => void;
-  onEdit: () => void;
 }
 
-const WorkerCard: React.FC<WorkerCardProps> = ({ worker, onDelete, onClick, onEdit }) => {
+const WorkerCard: React.FC<WorkerCardProps> = ({ worker, onDelete, onClick }) => {
+  const navigate = useNavigate();
+
   const openWhatsApp = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (worker.phone) {
@@ -19,6 +21,11 @@ const WorkerCard: React.FC<WorkerCardProps> = ({ worker, onDelete, onClick, onEd
       const whatsappUrl = `https://wa.me/${worker.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
       window.open(whatsappUrl, '_blank');
     }
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/edit-worker/${worker.id}`);
   };
 
   return (
@@ -60,10 +67,7 @@ const WorkerCard: React.FC<WorkerCardProps> = ({ worker, onDelete, onClick, onEd
             </Button>
           )}
           <Button 
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit();
-            }}
+            onClick={handleEdit}
             variant="outline"
             size="sm"
             className="text-blue-500 border-blue-200 hover:bg-blue-50"

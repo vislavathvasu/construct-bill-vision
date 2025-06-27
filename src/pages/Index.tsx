@@ -6,9 +6,8 @@ import MaterialCard from '@/components/MaterialCard';
 import BillCard from '@/components/BillCard';
 import BillViewModal from '@/components/BillViewModal';
 import AddBillForm from '@/components/AddBillForm';
-import EditBillForm from '@/components/EditBillForm';
-import AddWorkerForm from '@/components/AddWorkerForm';
 import AddExpenditureForm from '@/components/AddExpenditureForm';
+import AddWorkerForm from '@/components/AddWorkerForm';
 import WorkerCard from '@/components/WorkerCard';
 import WorkerDetailModal from '@/components/WorkerDetailModal';
 import ExpenditureRecordCard from '@/components/ExpenditureRecordCard';
@@ -19,7 +18,6 @@ import { materialTypes } from '@/data/materials';
 import { useAuth } from '@/hooks/useAuth';
 import { useBills, DatabaseBill } from '@/hooks/useBills';
 import { useWorkers, Worker } from '@/hooks/useWorkers';
-import EditWorkerForm from '@/components/EditWorkerForm';
 
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -29,8 +27,6 @@ const Index = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [workerSearchTerm, setWorkerSearchTerm] = useState('');
   const [selectedBill, setSelectedBill] = useState<DatabaseBill | null>(null);
-  const [editingBill, setEditingBill] = useState<DatabaseBill | null>(null);
-  const [editingWorker, setEditingWorker] = useState<Worker | null>(null);
   const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
@@ -91,10 +87,6 @@ const Index = () => {
     setSelectedBill(bill);
   };
 
-  const handleEditBill = (bill: DatabaseBill) => {
-    setEditingBill(bill);
-  };
-
   const handleWorkerClick = (worker: Worker) => {
     setSelectedWorker(worker);
   };
@@ -120,10 +112,6 @@ const Index = () => {
       default:
         break;
     }
-  };
-
-  const handleEditWorker = (worker: Worker) => {
-    setEditingWorker(worker);
   };
 
   const renderReportsView = () => {
@@ -307,7 +295,6 @@ const Index = () => {
                           materialIcon: materialType?.icon || Receipt,
                         }}
                         onView={() => handleViewBill(bill)}
-                        onEdit={() => handleEditBill(bill)}
                         onDelete={() => handleDeleteBill(bill.id)}
                       />
                     );
@@ -397,7 +384,6 @@ const Index = () => {
                         materialIcon: materialType?.icon || Receipt,
                       }}
                       onView={() => handleViewBill(bill)}
-                      onEdit={() => handleEditBill(bill)}
                       onDelete={() => handleDeleteBill(bill.id)}
                     />
                   );
@@ -449,7 +435,6 @@ const Index = () => {
                       key={worker.id}
                       worker={worker}
                       onClick={() => handleWorkerClick(worker)}
-                      onEdit={() => handleEditWorker(worker)}
                       onDelete={() => handleDeleteWorker(worker.id)}
                     />
                   ))}
@@ -501,28 +486,6 @@ const Index = () => {
         <BillViewModal
           bill={selectedBill}
           onClose={() => setSelectedBill(null)}
-        />
-      )}
-
-      {editingBill && (
-        <EditBillForm
-          bill={editingBill}
-          onSave={() => {
-            setEditingBill(null);
-            setCurrentView('bills');
-          }}
-          onCancel={() => setEditingBill(null)}
-        />
-      )}
-
-      {editingWorker && (
-        <EditWorkerForm
-          worker={editingWorker}
-          onSave={() => {
-            setEditingWorker(null);
-            setCurrentView('workers');
-          }}
-          onCancel={() => setEditingWorker(null)}
         />
       )}
 

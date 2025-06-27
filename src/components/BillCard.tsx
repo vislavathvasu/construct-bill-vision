@@ -3,16 +3,21 @@ import React from 'react';
 import { Calendar, MapPin, Receipt, Trash2, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Bill } from '@/types/bill';
+import { useNavigate } from 'react-router-dom';
 
 interface BillCardProps {
   bill: Bill;
   onView: () => void;
-  onEdit: () => void;
   onDelete: () => void;
 }
 
-const BillCard: React.FC<BillCardProps> = ({ bill, onView, onEdit, onDelete }) => {
+const BillCard: React.FC<BillCardProps> = ({ bill, onView, onDelete }) => {
+  const navigate = useNavigate();
   const IconComponent = bill.materialIcon;
+  
+  const handleEdit = () => {
+    navigate(`/edit-bill/${bill.id}`);
+  };
   
   return (
     <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-6 border border-gray-100">
@@ -53,7 +58,7 @@ const BillCard: React.FC<BillCardProps> = ({ bill, onView, onEdit, onDelete }) =
           View
         </Button>
         <Button 
-          onClick={onEdit}
+          onClick={handleEdit}
           variant="outline"
           className="px-4 text-blue-500 border-blue-200 hover:bg-blue-50"
         >
