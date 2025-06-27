@@ -60,12 +60,7 @@ export const useWorkers = () => {
         .from('wage_records')
         .select(`
           *,
-          worker:workers!inner (
-            id,
-            name,
-            photo_url,
-            phone
-          )
+          worker:workers!inner (*)
         `)
         .order('created_at', { ascending: false });
 
@@ -135,12 +130,7 @@ export const useWorkers = () => {
         }])
         .select(`
           *,
-          workers (
-            id,
-            name,
-            photo_url,
-            phone
-          )
+          workers (*)
         `)
         .single();
 

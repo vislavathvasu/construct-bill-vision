@@ -126,6 +126,15 @@ const Index = () => {
     setEditingWorker(worker);
   };
 
+  const renderReportsView = () => {
+    return (
+      <MonthlyReports 
+        bills={bills}
+        expenditureRecords={expenditureRecords}
+      />
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Navigation */}
