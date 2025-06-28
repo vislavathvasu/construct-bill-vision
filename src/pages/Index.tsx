@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
 import { Plus, Receipt, Search, BarChart3, Calendar, LogOut, Users, DollarSign, FileText, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useNavigate } from 'react-router-dom';
 import MaterialCard from '@/components/MaterialCard';
 import BillCard from '@/components/BillCard';
 import BillViewModal from '@/components/BillViewModal';
@@ -21,6 +21,7 @@ import { useBills, DatabaseBill } from '@/hooks/useBills';
 import { useWorkers, Worker } from '@/hooks/useWorkers';
 
 const Index = () => {
+  const navigate = useNavigate();
   const { user, loading: authLoading, signOut } = useAuth();
   const { bills, loading: billsLoading, deleteBill } = useBills();
   const { workers, expenditureRecords, loading: workersLoading, deleteWorker } = useWorkers();
