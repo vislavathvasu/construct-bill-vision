@@ -111,6 +111,12 @@ const Index = () => {
       case 'reports':
         setCurrentView('reports');
         break;
+      case 'today-total':
+        navigate('/today-total');
+        break;
+      case 'total-expenditure':
+        navigate('/total-expenditure');
+        break;
       default:
         break;
     }
@@ -314,7 +320,7 @@ const Index = () => {
 
               <div 
                 className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-4 sm:p-6 rounded-xl shadow-lg cursor-pointer hover:shadow-xl transition-shadow active:scale-95"
-                onClick={() => handleStatCardClick('workers')}
+                onClick={() => handleStatCardClick('total-expenditure')}
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -327,7 +333,7 @@ const Index = () => {
 
               <div 
                 className="bg-gradient-to-r from-red-500 to-red-600 text-white p-4 sm:p-6 rounded-xl shadow-lg cursor-pointer hover:shadow-xl transition-shadow active:scale-95"
-                onClick={() => handleStatCardClick('reports')}
+                onClick={() => handleStatCardClick('today-total')}
               >
                 <div className="flex items-center justify-between">
                   <div>
