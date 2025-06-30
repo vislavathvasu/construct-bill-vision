@@ -40,7 +40,14 @@ export const useAttendance = () => {
         .order('date', { ascending: false });
 
       if (error) throw error;
-      setAttendanceRecords(data || []);
+      
+      // Cast the data to match our interface
+      const typedData = (data || []).map(record => ({
+        ...record,
+        status: record.status as 'present' | 'absent'
+      }));
+      
+      setAttendanceRecords(typedData);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -91,9 +98,15 @@ export const useAttendance = () => {
 
       if (error) throw error;
       
+      // Cast the returned data to match our interface
+      const typedData = {
+        ...data,
+        status: data.status as 'present' | 'absent'
+      };
+      
       setAttendanceRecords(prev => {
         const filtered = prev.filter(record => !(record.worker_id === workerId && record.date === date));
-        return [data, ...filtered].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        return [typedData, ...filtered].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       });
       
       toast({
@@ -101,7 +114,7 @@ export const useAttendance = () => {
         description: `Attendance marked as ${status}.`,
       });
       
-      return data;
+      return typedData;
     } catch (error: any) {
       toast({
         title: "Error",
