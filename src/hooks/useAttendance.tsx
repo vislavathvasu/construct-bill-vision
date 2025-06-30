@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -83,11 +82,14 @@ export const useAttendance = () => {
     if (!user) return;
 
     try {
+      // Ensure date is in YYYY-MM-DD format without timezone issues
+      const formattedDate = new Date(date + 'T00:00:00').toISOString().split('T')[0];
+      
       const { data, error } = await supabase
         .from('attendance')
         .upsert([{
           worker_id: workerId,
-          date,
+          date: formattedDate,
           status,
           user_id: user.id,
         }], { 
@@ -105,7 +107,7 @@ export const useAttendance = () => {
       };
       
       setAttendanceRecords(prev => {
-        const filtered = prev.filter(record => !(record.worker_id === workerId && record.date === date));
+        const filtered = prev.filter(record => !(record.worker_id === workerId && record.date === formattedDate));
         return [typedData, ...filtered].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       });
       
