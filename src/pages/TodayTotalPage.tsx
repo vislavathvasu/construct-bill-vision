@@ -104,14 +104,25 @@ const TodayTotalPage = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-              {todayBills.map((bill) => (
-                <BillCard
-                  key={bill.id}
-                  bill={bill}
-                  onView={() => {/* Handle view if needed */}}
-                  onDelete={() => {/* Handle delete if needed */}}
-                />
-              ))}
+              {todayBills.map((bill) => {
+                const materialType = materialTypes.find(m => m.name === bill.material);
+                return (
+                  <BillCard
+                    key={bill.id}
+                    bill={{
+                      id: bill.id,
+                      shopName: bill.shop_name,
+                      material: bill.material,
+                      amount: bill.amount,
+                      date: new Date(bill.date).toLocaleDateString('en-IN'),
+                      location: bill.location,
+                      materialIcon: materialType?.icon || Receipt,
+                    }}
+                    onView={() => {/* Handle view if needed */}}
+                    onDelete={() => {/* Handle delete if needed */}}
+                  />
+                );
+              })}
             </div>
           )}
         </div>

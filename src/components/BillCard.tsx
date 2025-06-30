@@ -2,22 +2,18 @@
 import React from 'react';
 import { Calendar, MapPin, Receipt, Trash2, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { DatabaseBill } from '@/hooks/useBills';
+import { Bill } from '@/types/bill';
 import { useNavigate } from 'react-router-dom';
-import { materialTypes } from '@/data/materials';
 
 interface BillCardProps {
-  bill: DatabaseBill;
+  bill: Bill;
   onView: () => void;
   onDelete: () => void;
 }
 
 const BillCard: React.FC<BillCardProps> = ({ bill, onView, onDelete }) => {
   const navigate = useNavigate();
-  
-  // Find the material icon from the materials data
-  const materialData = materialTypes.find(m => m.name === bill.material);
-  const IconComponent = materialData?.icon || Receipt;
+  const IconComponent = bill.materialIcon;
   
   const handleEdit = () => {
     navigate(`/edit-bill/${bill.id}`);
@@ -31,7 +27,7 @@ const BillCard: React.FC<BillCardProps> = ({ bill, onView, onDelete }) => {
             <IconComponent size={20} className="text-blue-600 sm:w-6 sm:h-6" />
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="font-semibold text-base sm:text-lg text-gray-800 truncate">{bill.shop_name}</h3>
+            <h3 className="font-semibold text-base sm:text-lg text-gray-800 truncate">{bill.shopName}</h3>
             <p className="text-sm sm:text-base text-gray-600 truncate">{bill.material}</p>
           </div>
         </div>

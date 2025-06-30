@@ -186,34 +186,6 @@ export const useWorkers = () => {
     }
   };
 
-  const updateWorkerWage = async (workerId: string, dailyWage: number) => {
-    try {
-      const { data, error } = await supabase
-        .from('workers')
-        .update({ daily_wage: dailyWage })
-        .eq('id', workerId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      setWorkers(prev => prev.map(worker => worker.id === workerId ? data : worker));
-      toast({
-        title: "Success!",
-        description: "Daily wage updated successfully.",
-      });
-      
-      return data;
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to update daily wage: " + error.message,
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
-
   const deleteWorker = async (workerId: string) => {
     try {
       const { error } = await supabase
@@ -251,7 +223,6 @@ export const useWorkers = () => {
     addWorker,
     addExpenditureRecord,
     updateWorker,
-    updateWorkerWage,
     deleteWorker,
     refetchWorkers: fetchWorkers,
     refetchExpenditureRecords: fetchExpenditureRecords,
