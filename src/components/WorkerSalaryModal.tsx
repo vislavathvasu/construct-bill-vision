@@ -4,6 +4,7 @@ import { X, Calendar, DollarSign, Calculator, Download, Plus } from 'lucide-reac
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAttendance } from '@/hooks/useAttendance';
+import { useWorkers } from '@/hooks/useWorkers';
 import { Worker } from '@/hooks/useWorkers';
 import AddAdvanceForm from './AddAdvanceForm';
 
@@ -14,6 +15,7 @@ interface WorkerSalaryModalProps {
 
 const WorkerSalaryModal: React.FC<WorkerSalaryModalProps> = ({ worker, onClose }) => {
   const { getWorkerAttendance, getWorkerAdvances } = useAttendance();
+  const { expenditureRecords } = useWorkers();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showAdvanceForm, setShowAdvanceForm] = useState(false);
@@ -42,16 +44,32 @@ const WorkerSalaryModal: React.FC<WorkerSalaryModalProps> = ({ worker, onClose }
   const salaryData = useMemo(() => {
     const advances = getWorkerAdvances(worker.id, selectedMonth.toString(), selectedYear.toString());
     const totalAdvances = advances.reduce((sum, advance) => sum + advance.amount, 0);
+    
+    // Get expenditure records for the worker for the selected month
+    const workerExpenditures = expenditureRecords.filter(record => {
+      const recordDate = new Date(record.date);
+      return record.worker_id === worker.id &&
+             recordDate.getMonth() === selectedMonth - 1 &&
+             recordDate.getFullYear() === selectedYear;
+    });
+    const totalExpenditure = workerExpenditures.reduce((sum, record) => sum + record.amount, 0);
+    
     const monthlyIncome = attendanceData.presentDays * (worker.daily_wage || 0);
-    const netPayable = monthlyIncome - totalAdvances;
+    const netPayable = monthlyIncome - totalExpenditure;
+    
+    // Calculate advance balance if expenditure exceeds income
+    const advanceBalance = totalExpenditure > monthlyIncome ? totalExpenditure - monthlyIncome : 0;
     
     return {
       advances,
       totalAdvances,
+      totalExpenditure,
+      workerExpenditures,
       monthlyIncome,
-      netPayable
+      netPayable,
+      advanceBalance
     };
-  }, [worker, selectedMonth, selectedYear, attendanceData.presentDays, getWorkerAdvances]);
+  }, [worker, selectedMonth, selectedYear, attendanceData.presentDays, getWorkerAdvances, expenditureRecords]);
 
   const generateCalendar = () => {
     const firstDay = new Date(selectedYear, selectedMonth - 1, 1);
@@ -91,6 +109,53 @@ const WorkerSalaryModal: React.FC<WorkerSalaryModalProps> = ({ worker, onClose }
 
   const handleAdvanceAdded = () => {
     setShowAdvanceForm(false);
+  };
+
+  const generatePDF = () => {
+    // Create PDF content
+    const pdfContent = `
+      MONTHLY REPORT - ${monthNames[selectedMonth - 1]} ${selectedYear}
+      
+      Worker: ${worker.name}
+      Daily Wage: ₹${worker.daily_wage}
+      
+      ATTENDANCE:
+      Present Days: ${attendanceData.presentDays}
+      Absent Days: ${attendanceData.absentDays}
+      Total Days in Month: ${attendanceData.totalDaysInMonth}
+      
+      FINANCIAL SUMMARY:
+      Monthly Income: ₹${salaryData.monthlyIncome.toLocaleString()} (${attendanceData.presentDays} days × ₹${worker.daily_wage})
+      Total Expenditure: ₹${salaryData.totalExpenditure.toLocaleString()}
+      Net Payable: ₹${Math.abs(salaryData.netPayable).toLocaleString()}
+      ${salaryData.advanceBalance > 0 ? `Advance Balance: ₹${salaryData.advanceBalance.toLocaleString()}` : ''}
+      
+      EXPENDITURE RECORDS:
+      ${salaryData.workerExpenditures.map(exp => 
+        `${new Date(exp.date).toLocaleDateString()}: ₹${exp.amount} ${exp.notes ? '- ' + exp.notes : ''}`
+      ).join('\n')}
+      
+      ATTENDANCE CALENDAR:
+      ${calendar.map(week => 
+        week.map(day => 
+          day.isCurrentMonth ? 
+            `${day.day}${day.status ? (day.status === 'present' ? '✓' : '✗') : '-'}` : 
+            ''
+        ).filter(Boolean).join(' ')
+      ).filter(week => week).join('\n')}
+    `;
+
+    // Create and download the PDF (simplified text file for now)
+    const blob = new Blob([pdfContent], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = `${worker.name}_${monthNames[selectedMonth - 1]}_${selectedYear}_Report.txt`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
   };
 
   return (
@@ -232,20 +297,34 @@ const WorkerSalaryModal: React.FC<WorkerSalaryModalProps> = ({ worker, onClose }
 
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-orange-800 font-medium">Total Advances</span>
-                    <span className="text-xl font-bold text-orange-600">₹{salaryData.totalAdvances.toLocaleString()}</span>
+                    <span className="text-orange-800 font-medium">Total Expenditure</span>
+                    <span className="text-xl font-bold text-orange-600">₹{salaryData.totalExpenditure.toLocaleString()}</span>
                   </div>
-                  {salaryData.advances.length > 0 && (
+                  {salaryData.workerExpenditures.length > 0 && (
                     <div className="space-y-1">
-                      {salaryData.advances.map((advance) => (
-                        <div key={advance.id} className="text-sm text-orange-600 flex justify-between">
-                          <span>{new Date(advance.date).toLocaleDateString()}</span>
-                          <span>₹{advance.amount.toLocaleString()}</span>
+                      {salaryData.workerExpenditures.map((expenditure) => (
+                        <div key={expenditure.id} className="text-sm text-orange-600 flex justify-between">
+                          <span>{new Date(expenditure.date).toLocaleDateString()}</span>
+                          <span>₹{expenditure.amount.toLocaleString()}</span>
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
+
+                {salaryData.advanceBalance > 0 && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-red-800">Total Advance</span>
+                      <span className="text-2xl font-bold text-red-600">
+                        ₹{salaryData.advanceBalance.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="text-sm text-red-600 mt-1">
+                      Expenditure exceeds income
+                    </div>
+                  </div>
+                )}
 
                 <div className={`border-2 rounded-lg p-4 ${
                   salaryData.netPayable >= 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
@@ -264,7 +343,10 @@ const WorkerSalaryModal: React.FC<WorkerSalaryModalProps> = ({ worker, onClose }
                   </div>
                 </div>
 
-                <Button className="w-full bg-purple-500 hover:bg-purple-600">
+                <Button 
+                  onClick={generatePDF}
+                  className="w-full bg-purple-500 hover:bg-purple-600"
+                >
                   <Download size={16} className="mr-2" />
                   Export Monthly Report
                 </Button>

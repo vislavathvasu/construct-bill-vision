@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -158,6 +159,7 @@ export const useWorkers = () => {
     photo_url?: string;
     phone?: string;
     address?: string;
+    daily_wage?: number;
   }) => {
     try {
       const { data, error } = await supabase

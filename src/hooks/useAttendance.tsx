@@ -83,11 +83,14 @@ export const useAttendance = () => {
     if (!user) return;
 
     try {
+      // Ensure the date is in the correct format (YYYY-MM-DD)
+      const formattedDate = new Date(date).toISOString().split('T')[0];
+      
       const { data, error } = await supabase
         .from('attendance')
         .upsert([{
           worker_id: workerId,
-          date,
+          date: formattedDate,
           status,
           user_id: user.id,
         }], { 
@@ -105,13 +108,13 @@ export const useAttendance = () => {
       };
       
       setAttendanceRecords(prev => {
-        const filtered = prev.filter(record => !(record.worker_id === workerId && record.date === date));
+        const filtered = prev.filter(record => !(record.worker_id === workerId && record.date === formattedDate));
         return [typedData, ...filtered].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       });
       
       toast({
         title: "Success!",
-        description: `Attendance marked as ${status}.`,
+        description: `Attendance marked as ${status} for ${formattedDate}.`,
       });
       
       return typedData;

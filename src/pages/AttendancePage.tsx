@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ArrowLeft, Calendar, Check, X, User, UserCheck, UserX } from 'lucide-react';
+import { ArrowLeft, Calendar, Check, X, User, UserCheck, UserX, DollarSign, CalendarDays, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useNavigate } from 'react-router-dom';
@@ -8,14 +8,18 @@ import { useWorkers } from '@/hooks/useWorkers';
 import { useAttendance } from '@/hooks/useAttendance';
 import { useAuth } from '@/hooks/useAuth';
 import AuthForm from '@/components/AuthForm';
+import EditDailyWageModal from '@/components/EditDailyWageModal';
+import BackdateAttendanceModal from '@/components/BackdateAttendanceModal';
 
 const AttendancePage: React.FC = () => {
   const navigate = useNavigate();
-  const { workers, loading: workersLoading } = useWorkers();
+  const { workers, loading: workersLoading, updateWorker } = useWorkers();
   const { attendanceRecords, loading: attendanceLoading, markAttendance } = useAttendance();
   const { user, loading: authLoading } = useAuth();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [editWageWorker, setEditWageWorker] = useState<any>(null);
+  const [backdateWorker, setBackdateWorker] = useState<any>(null);
 
   if (authLoading) {
     return (
@@ -39,11 +43,28 @@ const AttendancePage: React.FC = () => {
     )?.status;
   };
 
-  const handleMarkAttendance = async (workerId: string, status: 'present' | 'absent') => {
+  const handleMarkAttendance = async (workerId: string, status: 'present' | 'absent', date?: string) => {
     try {
-      await markAttendance(workerId, selectedDate, status);
+      await markAttendance(workerId, date || selectedDate, status);
     } catch (error) {
       console.error('Failed to mark attendance:', error);
+    }
+  };
+
+  const handleUpdateDailyWage = async (workerId: string, newWage: number) => {
+    try {
+      const worker = workers.find(w => w.id === workerId);
+      if (worker) {
+        await updateWorker(workerId, {
+          name: worker.name,
+          photo_url: worker.photo_url,
+          phone: worker.phone,
+          address: worker.address,
+          daily_wage: newWage
+        });
+      }
+    } catch (error) {
+      console.error('Failed to update daily wage:', error);
     }
   };
 
@@ -181,7 +202,17 @@ const AttendancePage: React.FC = () => {
                       )}
                       <div>
                         <h3 className="text-lg font-semibold text-gray-800">{worker.name}</h3>
-                        <p className="text-gray-600">Daily Wage: ₹{worker.daily_wage}</p>
+                        <div className="flex items-center space-x-2">
+                          <p className="text-gray-600">Daily Wage: ₹{worker.daily_wage}</p>
+                          <Button
+                            onClick={() => setEditWageWorker(worker)}
+                            variant="ghost"
+                            size="sm"
+                            className="p-1 h-6 w-6 text-blue-500 hover:text-blue-700"
+                          >
+                            <Edit size={12} />
+                          </Button>
+                        </div>
                         {attendanceStatus && (
                           <p className={`text-sm font-medium ${
                             attendanceStatus === 'present' ? 'text-green-600' : 'text-red-600'
@@ -192,10 +223,20 @@ const AttendancePage: React.FC = () => {
                       </div>
                     </div>
                     
-                    <div className="flex space-x-3">
+                    <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+                      <Button
+                        onClick={() => setBackdateWorker(worker)}
+                        variant="outline"
+                        size="sm"
+                        className="text-purple-500 border-purple-200 hover:bg-purple-50"
+                      >
+                        <CalendarDays size={16} className="mr-2" />
+                        Backdate
+                      </Button>
+                      
                       <Button
                         onClick={() => handleMarkAttendance(worker.id, 'present')}
-                        className={`h-12 px-6 ${
+                        className={`${
                           attendanceStatus === 'present' 
                             ? 'bg-green-600 hover:bg-green-700' 
                             : 'bg-green-500 hover:bg-green-600'
@@ -208,7 +249,7 @@ const AttendancePage: React.FC = () => {
                       
                       <Button
                         onClick={() => handleMarkAttendance(worker.id, 'absent')}
-                        className={`h-12 px-6 ${
+                        className={`${
                           attendanceStatus === 'absent' 
                             ? 'bg-red-600 hover:bg-red-700' 
                             : 'bg-red-500 hover:bg-red-600'
@@ -226,6 +267,24 @@ const AttendancePage: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Modals */}
+      {editWageWorker && (
+        <EditDailyWageModal
+          worker={editWageWorker}
+          onSave={handleUpdateDailyWage}
+          onClose={() => setEditWageWorker(null)}
+        />
+      )}
+
+      {backdateWorker && (
+        <BackdateAttendanceModal
+          worker={backdateWorker}
+          onMarkAttendance={handleMarkAttendance}
+          onClose={() => setBackdateWorker(null)}
+          getAttendanceStatus={getAttendanceStatus}
+        />
+      )}
     </div>
   );
 };
