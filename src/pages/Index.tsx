@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Plus, Users, FileText, DollarSign, Calendar, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,21 +11,21 @@ import WorkerDetailModal from '@/components/WorkerDetailModal';
 import WorkerSalaryModal from '@/components/WorkerSalaryModal';
 import BillViewModal from '@/components/BillViewModal';
 import { useWorkers, Worker } from '@/hooks/useWorkers';
-import { useBills, Bill } from '@/hooks/useBills';
+import { useBills, DatabaseBill } from '@/hooks/useBills';
 import { useAuth } from '@/hooks/useAuth';
 import AuthForm from '@/components/AuthForm';
 import { useNavigate } from 'react-router-dom';
 
 const Index: React.FC = () => {
   const navigate = useNavigate();
-  const { workers, loading: workersLoading, deleteWorker } = useWorkers();
+  const { workers, expenditureRecords, loading: workersLoading, deleteWorker } = useWorkers();
   const { bills, loading: billsLoading, deleteBill } = useBills();
   const { user, loading: authLoading } = useAuth();
   
   const [showAddWorker, setShowAddWorker] = useState(false);
   const [showAddBill, setShowAddBill] = useState(false);
   const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
-  const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
+  const [selectedBill, setSelectedBill] = useState<DatabaseBill | null>(null);
   const [showWorkerDetail, setShowWorkerDetail] = useState(false);
   const [showWorkerSalary, setShowWorkerSalary] = useState(false);
   const [showBillDetail, setShowBillDetail] = useState(false);
@@ -67,7 +68,7 @@ const Index: React.FC = () => {
     navigate('/attendance');
   };
 
-  const handleBillClick = (bill: Bill) => {
+  const handleBillClick = (bill: DatabaseBill) => {
     setSelectedBill(bill);
     setShowBillDetail(true);
   };
@@ -203,7 +204,7 @@ const Index: React.FC = () => {
                 <BillCard
                   key={bill.id}
                   bill={bill}
-                  onClick={() => handleBillClick(bill)}
+                  onView={() => handleBillClick(bill)}
                   onDelete={() => handleDeleteBill(bill.id)}
                 />
               ))
@@ -234,6 +235,7 @@ const Index: React.FC = () => {
       {showWorkerDetail && selectedWorker && (
         <WorkerDetailModal
           worker={selectedWorker}
+          expenditureRecords={expenditureRecords}
           onClose={() => {
             setShowWorkerDetail(false);
             setSelectedWorker(null);
