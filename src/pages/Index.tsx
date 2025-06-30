@@ -19,6 +19,7 @@ import { materialTypes } from '@/data/materials';
 import { useAuth } from '@/hooks/useAuth';
 import { useBills, DatabaseBill } from '@/hooks/useBills';
 import { useWorkers, Worker } from '@/hooks/useWorkers';
+import WorkerSalaryModal from '@/components/WorkerSalaryModal';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -33,6 +34,7 @@ const Index = () => {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [selectedWorkerForSalary, setSelectedWorkerForSalary] = useState<Worker | null>(null);
 
   if (authLoading) {
     return (
@@ -127,9 +129,13 @@ const Index = () => {
     return <MonthlyReports />;
   };
 
+  const handleWorkerSalaryView = (worker: Worker) => {
+    setSelectedWorkerForSalary(worker);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Mobile-First Navigation */}
+      {/* Navigation */}
       <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -173,6 +179,15 @@ const Index = () => {
                   size="sm"
                 >
                   Workers
+                </Button>
+                <Button
+                  onClick={() => navigate('/attendance')}
+                  variant="ghost"
+                  size="sm"
+                  className="text-purple-600 hover:bg-purple-50"
+                >
+                  <Users size={16} className="mr-1" />
+                  Attendance
                 </Button>
                 <Button
                   variant={currentView === 'reports' ? 'default' : 'ghost'}
@@ -230,6 +245,17 @@ const Index = () => {
                 className="w-full justify-start"
               >
                 Workers
+              </Button>
+              <Button
+                onClick={() => {
+                  navigate('/attendance');
+                  setMobileMenuOpen(false);
+                }}
+                variant="ghost"
+                className="w-full justify-start text-purple-600 hover:bg-purple-50"
+              >
+                <Users size={16} className="mr-2" />
+                Attendance
               </Button>
               <Button
                 variant={currentView === 'reports' ? 'default' : 'ghost'}
@@ -498,6 +524,14 @@ const Index = () => {
               <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">Workers & Expenditures</h2>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button 
+                  onClick={() => navigate('/attendance')}
+                  className="bg-purple-500 hover:bg-purple-600"
+                  size="lg"
+                >
+                  <Users size={20} className="mr-2" />
+                  Attendance
+                </Button>
+                <Button 
                   onClick={() => setCurrentView('add-expenditure')}
                   className="bg-blue-500 hover:bg-blue-600"
                   size="lg"
@@ -537,6 +571,7 @@ const Index = () => {
                       worker={worker}
                       onClick={() => handleWorkerClick(worker)}
                       onDelete={() => handleDeleteWorker(worker.id)}
+                      onViewSalary={() => handleWorkerSalaryView(worker)}
                     />
                   ))}
                 </div>
@@ -595,6 +630,13 @@ const Index = () => {
           worker={selectedWorker}
           expenditureRecords={expenditureRecords}
           onClose={() => setSelectedWorker(null)}
+        />
+      )}
+
+      {selectedWorkerForSalary && (
+        <WorkerSalaryModal
+          worker={selectedWorkerForSalary}
+          onClose={() => setSelectedWorkerForSalary(null)}
         />
       )}
     </div>

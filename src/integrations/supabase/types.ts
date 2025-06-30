@@ -9,6 +9,85 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      advances: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          description: string | null
+          id: string
+          updated_at: string
+          user_id: string
+          worker_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          date?: string
+          description?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+          worker_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          description?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "advances_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attendance: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+          worker_id: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          status: string
+          updated_at?: string
+          user_id: string
+          worker_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bills: {
         Row: {
           amount: number
@@ -275,7 +354,7 @@ export type Database = {
         Row: {
           address: string | null
           created_at: string
-          daily_wage: number | null
+          daily_wage: number
           id: string
           name: string
           phone: string | null
@@ -286,7 +365,7 @@ export type Database = {
         Insert: {
           address?: string | null
           created_at?: string
-          daily_wage?: number | null
+          daily_wage?: number
           id?: string
           name: string
           phone?: string | null
@@ -297,7 +376,7 @@ export type Database = {
         Update: {
           address?: string | null
           created_at?: string
-          daily_wage?: number | null
+          daily_wage?: number
           id?: string
           name?: string
           phone?: string | null

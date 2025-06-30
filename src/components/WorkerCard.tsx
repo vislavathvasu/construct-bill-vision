@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Phone, User, Trash2, MessageCircle, Edit } from 'lucide-react';
+import { Phone, User, Trash2, MessageCircle, Edit, Calculator } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Worker } from '@/hooks/useWorkers';
 import { useNavigate } from 'react-router-dom';
@@ -9,9 +9,10 @@ interface WorkerCardProps {
   worker: Worker;
   onDelete: () => void;
   onClick: () => void;
+  onViewSalary: () => void;
 }
 
-const WorkerCard: React.FC<WorkerCardProps> = ({ worker, onDelete, onClick }) => {
+const WorkerCard: React.FC<WorkerCardProps> = ({ worker, onDelete, onClick, onViewSalary }) => {
   const navigate = useNavigate();
 
   const openWhatsApp = (e: React.MouseEvent) => {
@@ -26,6 +27,11 @@ const WorkerCard: React.FC<WorkerCardProps> = ({ worker, onDelete, onClick }) =>
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
     navigate(`/edit-worker/${worker.id}`);
+  };
+
+  const handleViewSalary = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onViewSalary();
   };
 
   return (
@@ -49,16 +55,28 @@ const WorkerCard: React.FC<WorkerCardProps> = ({ worker, onDelete, onClick }) =>
           <div className="min-w-0 flex-1">
             <h3 className="text-base sm:text-lg font-semibold mb-1 truncate">{worker.name}</h3>
             {worker.phone && (
-              <div className="flex items-center space-x-2 text-gray-600">
+              <div className="flex items-center space-x-2 text-gray-600 mb-1">
                 <Phone size={14} />
                 <span className="text-sm truncate">{worker.phone}</span>
               </div>
             )}
+            <div className="text-sm text-gray-600">
+              Daily Wage: ₹{worker.daily_wage?.toLocaleString() || 'Not set'}
+            </div>
           </div>
         </div>
       </div>
 
       <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+        <Button 
+          onClick={handleViewSalary}
+          size="sm"
+          className="bg-purple-500 hover:bg-purple-600 text-white flex-1 h-10"
+        >
+          <Calculator size={16} className="mr-2" />
+          Salary
+        </Button>
+        
         {worker.phone && (
           <Button 
             onClick={openWhatsApp}
@@ -69,6 +87,7 @@ const WorkerCard: React.FC<WorkerCardProps> = ({ worker, onDelete, onClick }) =>
             WhatsApp
           </Button>
         )}
+        
         <Button 
           onClick={handleEdit}
           variant="outline"
@@ -78,6 +97,7 @@ const WorkerCard: React.FC<WorkerCardProps> = ({ worker, onDelete, onClick }) =>
           <Edit size={16} className="mr-2" />
           Edit
         </Button>
+        
         <Button 
           onClick={(e) => {
             e.stopPropagation();
