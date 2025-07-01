@@ -13,6 +13,7 @@ import TodayTotalPage from "./pages/TodayTotalPage";
 import TotalExpenditurePage from "./pages/TotalExpenditurePage";
 import AttendancePage from "./pages/AttendancePage";
 import AttendanceRecordingPage from "./pages/AttendanceRecordingPage";
+import WorkerAttendancePage from "./pages/WorkerAttendancePage";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/edit-worker/:id" element={<EditWorkerPage />} />
             <Route path="/attendance" element={<AttendancePage />} />
             <Route path="/attendance-recording" element={<AttendanceRecordingPage />} />
+            <Route path="/worker-attendance/:id" element={<WorkerAttendancePage />} />
             <Route path="/today-total" element={<TodayTotalPage />} />
             <Route path="/total-expenditure" element={<TotalExpenditurePage />} />
             <Route path="*" element={<NotFound />} />

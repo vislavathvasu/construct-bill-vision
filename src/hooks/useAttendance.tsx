@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -83,25 +82,24 @@ export const useAttendance = () => {
     if (!user) return;
 
     try {
-      // Ensure the date is in the correct format (YYYY-MM-DD) without timezone conversion
+      // Normalize the date string to YYYY-MM-DD format without timezone issues
       let formattedDate: string;
       
       if (date.includes('T')) {
         // If date includes time, extract just the date part
         formattedDate = date.split('T')[0];
-      } else if (date.includes('-') && date.length === 10) {
-        // If already in YYYY-MM-DD format, use as is
-        formattedDate = date;
       } else {
-        // Create date without timezone issues
-        const dateObj = new Date(date);
+        // Assume date is already in YYYY-MM-DD format or parse it properly
+        const dateObj = new Date(date + 'T00:00:00'); // Add time to avoid timezone shift
         const year = dateObj.getFullYear();
         const month = String(dateObj.getMonth() + 1).padStart(2, '0');
         const day = String(dateObj.getDate()).padStart(2, '0');
         formattedDate = `${year}-${month}-${day}`;
       }
       
-      console.log('Marking attendance for date:', formattedDate, 'Worker:', workerId, 'Status:', status);
+      console.log('Original date:', date);
+      console.log('Formatted date for storage:', formattedDate);
+      console.log('Marking attendance for Worker:', workerId, 'Status:', status);
       
       const { data, error } = await supabase
         .from('attendance')
@@ -184,7 +182,7 @@ export const useAttendance = () => {
 
   const getWorkerAttendance = (workerId: string, month?: string, year?: string) => {
     return attendanceRecords.filter(record => {
-      const recordDate = new Date(record.date);
+      const recordDate = new Date(record.date + 'T00:00:00'); // Add time to avoid timezone shift
       const matchesWorker = record.worker_id === workerId;
       
       if (month && year) {
@@ -199,7 +197,7 @@ export const useAttendance = () => {
 
   const getWorkerAdvances = (workerId: string, month?: string, year?: string) => {
     return advanceRecords.filter(record => {
-      const recordDate = new Date(record.date);
+      const recordDate = new Date(record.date + 'T00:00:00'); // Add time to avoid timezone shift
       const matchesWorker = record.worker_id === workerId;
       
       if (month && year) {

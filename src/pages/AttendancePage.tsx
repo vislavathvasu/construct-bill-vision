@@ -201,7 +201,12 @@ const AttendancePage: React.FC = () => {
                         </div>
                       )}
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-800">{worker.name}</h3>
+                        <h3 
+                          className="text-lg font-semibold text-gray-800 cursor-pointer hover:text-blue-600 transition-colors"
+                          onClick={() => navigate(`/worker-attendance/${worker.id}`)}
+                        >
+                          {worker.name}
+                        </h3>
                         <div className="flex items-center space-x-2">
                           <p className="text-gray-600">Daily Wage: ₹{worker.daily_wage}</p>
                           <Button

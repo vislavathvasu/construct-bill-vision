@@ -23,10 +23,17 @@ const BackdateAttendanceModal: React.FC<BackdateAttendanceModalProps> = ({
 }) => {
   const [selectedDate, setSelectedDate] = useState<Date>();
 
-  const handleMarkAttendance = (status: 'present' | 'absent') => {
+  const handleMarkAttendance = async (status: 'present' | 'absent') => {
     if (selectedDate) {
-      const dateStr = selectedDate.toISOString().split('T')[0];
-      onMarkAttendance(worker.id, dateStr, status);
+      // Format date as YYYY-MM-DD to avoid timezone issues
+      const year = selectedDate.getFullYear();
+      const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
+      const day = String(selectedDate.getDate()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+      
+      console.log('BackdateAttendanceModal - Marking attendance for:', dateStr);
+      await onMarkAttendance(worker.id, dateStr, status);
+      onClose();
     }
   };
 

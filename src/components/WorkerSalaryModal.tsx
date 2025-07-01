@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { X, Calendar, DollarSign, Calculator, Download, Plus, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,7 @@ import { useWorkers } from '@/hooks/useWorkers';
 import { Worker } from '@/hooks/useWorkers';
 import AddAdvanceForm from './AddAdvanceForm';
 import EditDailyWageModal from './EditDailyWageModal';
+import jsPDF from 'jspdf';
 
 interface WorkerSalaryModalProps {
   worker: Worker;
@@ -48,7 +50,7 @@ const WorkerSalaryModal: React.FC<WorkerSalaryModalProps> = ({ worker, onClose }
     
     // Get expenditure records for the worker for the selected month
     const workerExpenditures = expenditureRecords.filter(record => {
-      const recordDate = new Date(record.date);
+      const recordDate = new Date(record.date + 'T00:00:00'); // Add time to avoid timezone shift
       return record.worker_id === worker.id &&
              recordDate.getMonth() === selectedMonth - 1 &&
              recordDate.getFullYear() === selectedYear;
@@ -113,50 +115,84 @@ const WorkerSalaryModal: React.FC<WorkerSalaryModalProps> = ({ worker, onClose }
   };
 
   const generatePDF = () => {
-    // Create PDF content
-    const pdfContent = `
-      MONTHLY REPORT - ${monthNames[selectedMonth - 1]} ${selectedYear}
+    const pdf = new jsPDF();
+    const pageWidth = pdf.internal.pageSize.width;
+    
+    // Title
+    pdf.setFontSize(20);
+    pdf.text('MONTHLY REPORT', pageWidth / 2, 20, { align: 'center' });
+    
+    pdf.setFontSize(16);
+    pdf.text(`${monthNames[selectedMonth - 1]} ${selectedYear}`, pageWidth / 2, 30, { align: 'center' });
+    
+    // Worker Info
+    pdf.setFontSize(14);
+    pdf.text(`Worker: ${worker.name}`, 20, 50);
+    pdf.text(`Daily Wage: ₹${worker.daily_wage}`, 20, 60);
+    
+    // Attendance Summary
+    pdf.setFontSize(12);
+    pdf.text('ATTENDANCE SUMMARY:', 20, 80);
+    pdf.text(`Present Days: ${attendanceData.presentDays}`, 30, 90);
+    pdf.text(`Absent Days: ${attendanceData.absentDays}`, 30, 100);
+    pdf.text(`Total Days in Month: ${attendanceData.totalDaysInMonth}`, 30, 110);
+    
+    // Financial Summary
+    pdf.text('FINANCIAL SUMMARY:', 20, 130);
+    pdf.text(`Monthly Income: ₹${salaryData.monthlyIncome.toLocaleString()} (${attendanceData.presentDays} days × ₹${worker.daily_wage})`, 30, 140);
+    pdf.text(`Total Expenditure: ₹${salaryData.totalExpenditure.toLocaleString()}`, 30, 150);
+    
+    if (salaryData.advanceBalance > 0) {
+      pdf.text(`Total Advance: ₹${salaryData.advanceBalance.toLocaleString()}`, 30, 160);
+    } else {
+      pdf.text(`Net Payable: ₹${Math.abs(salaryData.netPayable).toLocaleString()}`, 30, 160);
+    }
+    
+    // Expenditure Records
+    if (salaryData.workerExpenditures.length > 0) {
+      pdf.text('EXPENDITURE RECORDS:', 20, 180);
+      let yPos = 190;
       
-      Worker: ${worker.name}
-      Daily Wage: ₹${worker.daily_wage}
+      salaryData.workerExpenditures.forEach((exp, index) => {
+        if (yPos > 250) {
+          pdf.addPage();
+          yPos = 20;
+        }
+        pdf.text(`${new Date(exp.date).toLocaleDateString()}: ₹${exp.amount.toLocaleString()}${exp.notes ? ' - ' + exp.notes : ''}`, 30, yPos);
+        yPos += 10;
+      });
+    }
+    
+    // Attendance Calendar
+    let calendarYPos = salaryData.workerExpenditures.length > 0 ? yPos + 20 : 200;
+    if (calendarYPos > 200) {
+      pdf.addPage();
+      calendarYPos = 20;
+    }
+    
+    pdf.text('ATTENDANCE CALENDAR:', 20, calendarYPos);
+    calendarYPos += 20;
+    
+    // Calendar grid
+    calendar.forEach((week, weekIndex) => {
+      if (calendarYPos > 250) {
+        pdf.addPage();
+        calendarYPos = 20;
+      }
       
-      ATTENDANCE:
-      Present Days: ${attendanceData.presentDays}
-      Absent Days: ${attendanceData.absentDays}
-      Total Days in Month: ${attendanceData.totalDaysInMonth}
+      const weekText = week
+        .filter(day => day.isCurrentMonth)
+        .map(day => `${day.day}${day.status ? (day.status === 'present' ? '✓' : '✗') : '-'}`)
+        .join(' ');
       
-      FINANCIAL SUMMARY:
-      Monthly Income: ₹${salaryData.monthlyIncome.toLocaleString()} (${attendanceData.presentDays} days × ₹${worker.daily_wage})
-      Total Expenditure: ₹${salaryData.totalExpenditure.toLocaleString()}
-      Net Payable: ₹${Math.abs(salaryData.netPayable).toLocaleString()}
-      ${salaryData.advanceBalance > 0 ? `Advance Balance: ₹${salaryData.advanceBalance.toLocaleString()}` : ''}
-      
-      EXPENDITURE RECORDS:
-      ${salaryData.workerExpenditures.map(exp => 
-        `${new Date(exp.date).toLocaleDateString()}: ₹${exp.amount} ${exp.notes ? '- ' + exp.notes : ''}`
-      ).join('\n')}
-      
-      ATTENDANCE CALENDAR:
-      ${calendar.map(week => 
-        week.map(day => 
-          day.isCurrentMonth ? 
-            `${day.day}${day.status ? (day.status === 'present' ? '✓' : '✗') : '-'}` : 
-            ''
-        ).filter(Boolean).join(' ')
-      ).filter(week => week).join('\n')}
-    `;
+      if (weekText) {
+        pdf.text(weekText, 30, calendarYPos);
+        calendarYPos += 10;
+      }
+    });
 
-    // Create and download the PDF (simplified text file for now)
-    const blob = new Blob([pdfContent], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.style.display = 'none';
-    a.href = url;
-    a.download = `${worker.name}_${monthNames[selectedMonth - 1]}_${selectedYear}_Report.txt`;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
+    // Download the PDF
+    pdf.save(`${worker.name}_${monthNames[selectedMonth - 1]}_${selectedYear}_Report.pdf`);
   };
 
   const handleUpdateDailyWage = async (workerId: string, newWage: number) => {
@@ -374,7 +410,7 @@ const WorkerSalaryModal: React.FC<WorkerSalaryModalProps> = ({ worker, onClose }
                   className="w-full bg-purple-500 hover:bg-purple-600"
                 >
                   <Download size={16} className="mr-2" />
-                  Export Monthly Report
+                  Export Monthly Report (PDF)
                 </Button>
               </div>
             </div>
