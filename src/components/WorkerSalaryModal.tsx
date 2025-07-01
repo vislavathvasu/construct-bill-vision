@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { X, Calendar, DollarSign, Calculator, Download, Plus, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -149,22 +148,23 @@ const WorkerSalaryModal: React.FC<WorkerSalaryModalProps> = ({ worker, onClose }
     }
     
     // Expenditure Records
+    let currentYPos = 180;
     if (salaryData.workerExpenditures.length > 0) {
-      pdf.text('EXPENDITURE RECORDS:', 20, 180);
-      let yPos = 190;
+      pdf.text('EXPENDITURE RECORDS:', 20, currentYPos);
+      currentYPos += 10;
       
       salaryData.workerExpenditures.forEach((exp, index) => {
-        if (yPos > 250) {
+        if (currentYPos > 250) {
           pdf.addPage();
-          yPos = 20;
+          currentYPos = 20;
         }
-        pdf.text(`${new Date(exp.date).toLocaleDateString()}: ₹${exp.amount.toLocaleString()}${exp.notes ? ' - ' + exp.notes : ''}`, 30, yPos);
-        yPos += 10;
+        pdf.text(`${new Date(exp.date).toLocaleDateString()}: ₹${exp.amount.toLocaleString()}${exp.notes ? ' - ' + exp.notes : ''}`, 30, currentYPos);
+        currentYPos += 10;
       });
     }
     
     // Attendance Calendar
-    let calendarYPos = salaryData.workerExpenditures.length > 0 ? yPos + 20 : 200;
+    let calendarYPos = salaryData.workerExpenditures.length > 0 ? currentYPos + 20 : 200;
     if (calendarYPos > 200) {
       pdf.addPage();
       calendarYPos = 20;
