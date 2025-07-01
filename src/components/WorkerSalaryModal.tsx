@@ -1,12 +1,12 @@
-
 import React, { useState, useMemo } from 'react';
-import { X, Calendar, DollarSign, Calculator, Download, Plus } from 'lucide-react';
+import { X, Calendar, DollarSign, Calculator, Download, Plus, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAttendance } from '@/hooks/useAttendance';
 import { useWorkers } from '@/hooks/useWorkers';
 import { Worker } from '@/hooks/useWorkers';
 import AddAdvanceForm from './AddAdvanceForm';
+import EditDailyWageModal from './EditDailyWageModal';
 
 interface WorkerSalaryModalProps {
   worker: Worker;
@@ -15,10 +15,11 @@ interface WorkerSalaryModalProps {
 
 const WorkerSalaryModal: React.FC<WorkerSalaryModalProps> = ({ worker, onClose }) => {
   const { getWorkerAttendance, getWorkerAdvances } = useAttendance();
-  const { expenditureRecords } = useWorkers();
+  const { expenditureRecords, updateWorker } = useWorkers();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [showAdvanceForm, setShowAdvanceForm] = useState(false);
+  const [showEditWage, setShowEditWage] = useState(false);
 
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -158,6 +159,21 @@ const WorkerSalaryModal: React.FC<WorkerSalaryModalProps> = ({ worker, onClose }
     document.body.removeChild(a);
   };
 
+  const handleUpdateDailyWage = async (workerId: string, newWage: number) => {
+    try {
+      await updateWorker(workerId, {
+        name: worker.name,
+        photo_url: worker.photo_url,
+        phone: worker.phone,
+        address: worker.address,
+        daily_wage: newWage
+      });
+      setShowEditWage(false);
+    } catch (error) {
+      console.error('Failed to update daily wage:', error);
+    }
+  };
+
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-40">
@@ -179,7 +195,17 @@ const WorkerSalaryModal: React.FC<WorkerSalaryModalProps> = ({ worker, onClose }
               )}
               <div>
                 <h2 className="text-xl font-bold text-gray-800">{worker.name}</h2>
-                <p className="text-gray-600">Daily Wage: ₹{worker.daily_wage}</p>
+                <div className="flex items-center space-x-2">
+                  <p className="text-gray-600">Daily Wage: ₹{worker.daily_wage}</p>
+                  <Button
+                    onClick={() => setShowEditWage(true)}
+                    variant="ghost"
+                    size="sm"
+                    className="p-1 h-6 w-6 text-blue-500 hover:text-blue-700"
+                  >
+                    <Edit size={12} />
+                  </Button>
+                </div>
               </div>
             </div>
             <Button onClick={onClose} variant="ghost" size="sm">
@@ -361,6 +387,14 @@ const WorkerSalaryModal: React.FC<WorkerSalaryModalProps> = ({ worker, onClose }
           selectedWorkerId={worker.id}
           onSave={handleAdvanceAdded}
           onCancel={() => setShowAdvanceForm(false)}
+        />
+      )}
+
+      {showEditWage && (
+        <EditDailyWageModal
+          worker={worker}
+          onSave={handleUpdateDailyWage}
+          onClose={() => setShowEditWage(false)}
         />
       )}
     </>

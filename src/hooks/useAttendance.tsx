@@ -83,8 +83,25 @@ export const useAttendance = () => {
     if (!user) return;
 
     try {
-      // Ensure the date is in the correct format (YYYY-MM-DD)
-      const formattedDate = new Date(date).toISOString().split('T')[0];
+      // Ensure the date is in the correct format (YYYY-MM-DD) without timezone conversion
+      let formattedDate: string;
+      
+      if (date.includes('T')) {
+        // If date includes time, extract just the date part
+        formattedDate = date.split('T')[0];
+      } else if (date.includes('-') && date.length === 10) {
+        // If already in YYYY-MM-DD format, use as is
+        formattedDate = date;
+      } else {
+        // Create date without timezone issues
+        const dateObj = new Date(date);
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        formattedDate = `${year}-${month}-${day}`;
+      }
+      
+      console.log('Marking attendance for date:', formattedDate, 'Worker:', workerId, 'Status:', status);
       
       const { data, error } = await supabase
         .from('attendance')

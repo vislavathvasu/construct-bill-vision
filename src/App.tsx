@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +12,7 @@ import EditWorkerPage from "./pages/EditWorkerPage";
 import TodayTotalPage from "./pages/TodayTotalPage";
 import TotalExpenditurePage from "./pages/TotalExpenditurePage";
 import AttendancePage from "./pages/AttendancePage";
+import AttendanceRecordingPage from "./pages/AttendanceRecordingPage";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +28,7 @@ const App = () => (
             <Route path="/edit-bill/:id" element={<EditBillPage />} />
             <Route path="/edit-worker/:id" element={<EditWorkerPage />} />
             <Route path="/attendance" element={<AttendancePage />} />
+            <Route path="/attendance-recording" element={<AttendanceRecordingPage />} />
             <Route path="/today-total" element={<TodayTotalPage />} />
             <Route path="/total-expenditure" element={<TotalExpenditurePage />} />
             <Route path="*" element={<NotFound />} />
