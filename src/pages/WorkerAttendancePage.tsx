@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ArrowLeft, Calendar, Check, X, User, Edit } from 'lucide-react';
+import { ArrowLeft, Check, X, User, Edit, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -116,6 +116,13 @@ const WorkerAttendancePage: React.FC = () => {
     }
   };
 
+  // Get today's attendance status
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  const todayAttendance = attendanceRecords.find(record => 
+    record.worker_id === id && record.date === todayStr
+  );
+
   const calendar = generateCalendar();
 
   if (workersLoading || attendanceLoading) {
@@ -196,49 +203,86 @@ const WorkerAttendancePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Month/Year Selection */}
+        {/* Today's Attendance Actions */}
         <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-          <div className="flex items-center space-x-4">
-            <Calendar size={20} className="text-gray-500" />
-            <Select 
-              value={selectedMonth.toString()} 
-              onValueChange={(value) => setSelectedMonth(parseInt(value))}
-            >
-              <SelectTrigger className="w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {monthNames.map((month, index) => (
-                  <SelectItem key={index + 1} value={(index + 1).toString()}>
-                    {month}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Today's Attendance</h3>
+          <div className="flex items-center justify-between">
+            <div className="text-gray-600">
+              Today ({today.toLocaleDateString()}): 
+              {todayAttendance ? (
+                <span className={`ml-2 font-semibold ${
+                  todayAttendance.status === 'present' ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {todayAttendance.status === 'present' ? 'Present' : 'Absent'}
+                </span>
+              ) : (
+                <span className="ml-2 font-semibold text-gray-500">Not Marked</span>
+              )}
+            </div>
             
-            <Select 
-              value={selectedYear.toString()} 
-              onValueChange={(value) => setSelectedYear(parseInt(value))}
-            >
-              <SelectTrigger className="w-24">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map(year => (
-                  <SelectItem key={year} value={year.toString()}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {!todayAttendance && (
+              <div className="flex space-x-3">
+                <Button
+                  onClick={() => handleMarkAttendance(today, 'present')}
+                  className="bg-green-500 hover:bg-green-600 text-white"
+                >
+                  <Check size={16} className="mr-2" />
+                  Present Today
+                </Button>
+                <Button
+                  onClick={() => handleMarkAttendance(today, 'absent')}
+                  className="bg-red-500 hover:bg-red-600 text-white"
+                >
+                  <X size={16} className="mr-2" />
+                  Absent Today
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Attendance Calendar */}
         <div className="bg-white rounded-xl shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Attendance Calendar - {monthNames[selectedMonth - 1]} {selectedYear}
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-800">
+              Attendance Calendar
+            </h3>
+            
+            <div className="flex items-center space-x-4">
+              <Calendar size={20} className="text-gray-500" />
+              <Select 
+                value={selectedMonth.toString()} 
+                onValueChange={(value) => setSelectedMonth(parseInt(value))}
+              >
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {monthNames.map((month, index) => (
+                    <SelectItem key={index + 1} value={(index + 1).toString()}>
+                      {month}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select 
+                value={selectedYear.toString()} 
+                onValueChange={(value) => setSelectedYear(parseInt(value))}
+              >
+                <SelectTrigger className="w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map(year => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           
           <div className="bg-gray-50 rounded-lg p-4">
             <div className="grid grid-cols-7 gap-1 mb-2">
@@ -262,32 +306,11 @@ const WorkerAttendancePage: React.FC = () => {
                     `}
                   >
                     <div className="font-semibold mb-1">{day.day}</div>
-                    {day.isCurrentMonth && (
-                      <div className="flex space-x-1">
-                        {day.status ? (
-                          <div className={`text-xs font-bold px-2 py-1 rounded ${
-                            day.status === 'present' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-                          }`}>
-                            {day.status === 'present' ? 'P' : 'A'}
-                          </div>
-                        ) : (
-                          <>
-                            <Button
-                              onClick={() => handleMarkAttendance(day.date, 'present')}
-                              size="sm"
-                              className="w-6 h-6 p-0 bg-green-500 hover:bg-green-600 text-xs"
-                            >
-                              <Check size={10} />
-                            </Button>
-                            <Button
-                              onClick={() => handleMarkAttendance(day.date, 'absent')}
-                              size="sm"
-                              className="w-6 h-6 p-0 bg-red-500 hover:bg-red-600 text-xs"
-                            >
-                              <X size={10} />
-                            </Button>
-                          </>
-                        )}
+                    {day.isCurrentMonth && day.status && (
+                      <div className={`text-xs font-bold px-2 py-1 rounded ${
+                        day.status === 'present' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                      }`}>
+                        {day.status === 'present' ? 'P' : 'A'}
                       </div>
                     )}
                   </div>

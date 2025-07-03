@@ -79,6 +79,33 @@ const AttendanceRecordingPage: React.FC = () => {
     }
   };
 
+  const getTodayAttendanceStats = () => {
+    const today = new Date().toISOString().split('T')[0];
+    let presentCount = 0;
+    let absentCount = 0;
+    let notMarkedCount = 0;
+
+    workers.forEach(worker => {
+      const todayRecord = attendanceRecords.find(record => 
+        record.worker_id === worker.id && record.date === today
+      );
+      
+      if (todayRecord) {
+        if (todayRecord.status === 'present') {
+          presentCount++;
+        } else {
+          absentCount++;
+        }
+      } else {
+        notMarkedCount++;
+      }
+    });
+
+    return { presentCount, absentCount, notMarkedCount };
+  };
+
+  const { presentCount, absentCount, notMarkedCount } = getTodayAttendanceStats();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Navigation */}
@@ -102,6 +129,25 @@ const AttendanceRecordingPage: React.FC = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Today's Summary */}
+        <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Today's Summary</h2>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-green-600">{presentCount}</div>
+              <div className="text-green-800 font-medium">Present Today</div>
+            </div>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-red-600">{absentCount}</div>
+              <div className="text-red-800 font-medium">Absent Today</div>
+            </div>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-gray-600">{notMarkedCount}</div>
+              <div className="text-gray-800 font-medium">Not Marked</div>
+            </div>
+          </div>
+        </div>
+
         {workersLoading || attendanceLoading ? (
           <div className="text-center py-12">Loading workers and attendance...</div>
         ) : (
