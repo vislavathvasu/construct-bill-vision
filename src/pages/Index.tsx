@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Plus,
@@ -27,8 +28,7 @@ import { useWorkers } from '@/hooks/useWorkers';
 import { useAuth } from '@/hooks/useAuth';
 import AuthForm from '@/components/AuthForm';
 import { format } from 'date-fns';
-import { DatePicker } from "@/components/ui/date-picker"
-import { CalendarIcon } from '@radix-ui/react-icons';
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import WorkerSalaryModal from '@/components/WorkerSalaryModal';
 
@@ -213,9 +213,9 @@ const Index: React.FC = () => {
                         onClick={() => setSelectedWorker(worker)}
                         variant="outline"
                         size="sm"
-                        className="text-green-500 border-green-200 hover:bg-green-50"
+                        className="text-green-500 border-green-200 hover:bg-green-50 px-2 py-1"
                       >
-                        <DollarSign size={14} className="mr-1" />
+                        <DollarSign size={12} className="mr-1" />
                         Salary
                       </Button>
                       
@@ -224,9 +224,9 @@ const Index: React.FC = () => {
                           onClick={() => window.open(`https://wa.me/${worker.phone}`, '_blank')}
                           variant="outline"
                           size="sm"
-                          className="text-green-500 border-green-200 hover:bg-green-50"
+                          className="text-green-500 border-green-200 hover:bg-green-50 px-2 py-1"
                         >
-                          <MessageCircle size={14} className="mr-1" />
+                          <MessageCircle size={12} className="mr-1" />
                           WhatsApp
                         </Button>
                       )}
@@ -235,9 +235,9 @@ const Index: React.FC = () => {
                         onClick={() => navigate(`/edit-worker/${worker.id}`)}
                         variant="outline"
                         size="sm"
-                        className="text-blue-500 border-blue-200 hover:bg-blue-50"
+                        className="text-blue-500 border-blue-200 hover:bg-blue-50 px-2 py-1"
                       >
-                        <Edit size={14} className="mr-1" />
+                        <Edit size={12} className="mr-1" />
                         Edit
                       </Button>
                       
@@ -245,9 +245,9 @@ const Index: React.FC = () => {
                         onClick={() => handleDeleteWorker(worker.id)}
                         variant="outline"
                         size="sm"
-                        className="text-red-500 border-red-200 hover:bg-red-50"
+                        className="text-red-500 border-red-200 hover:bg-red-50 px-2 py-1"
                       >
-                        <Trash2 size={14} className="mr-1" />
+                        <Trash2 size={12} className="mr-1" />
                         Delete
                       </Button>
                     </div>
@@ -319,7 +319,7 @@ const Index: React.FC = () => {
                     variant={"outline"}
                     className="w-full justify-start text-left font-normal"
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    <Calendar className="mr-2 h-4 w-4" />
                     {selectedDate ? (
                       format(selectedDate, "PPP")
                     ) : (
@@ -328,7 +328,7 @@ const Index: React.FC = () => {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <DatePicker
+                  <CalendarComponent
                     mode="single"
                     selected={selectedDate}
                     onSelect={setSelectedDate}
