@@ -18,7 +18,7 @@ import WorkerDetailModal from '@/components/WorkerDetailModal';
 const Index = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { workers, loading: workersLoading, deleteWorker } = useWorkers();
+  const { workers, loading: workersLoading, deleteWorker, expenditureRecords } = useWorkers();
   const { bills, loading: billsLoading, deleteBill } = useBills();
 
   const [showAddWorker, setShowAddWorker] = useState(false);
@@ -155,10 +155,10 @@ const Index = () => {
                           onClick={() => setSelectedWorkerForSalary(worker)}
                           variant="outline"
                           size="sm"
-                          className="p-1 h-8 w-8"
+                          className="p-1 h-6 w-6"
                           title="View Salary"
                         >
-                          <DollarSign size={12} />
+                          <DollarSign size={10} />
                         </Button>
                         
                         {worker.phone && (
@@ -166,10 +166,10 @@ const Index = () => {
                             onClick={() => handleWhatsAppMessage(worker.phone)}
                             variant="outline"
                             size="sm"
-                            className="p-1 h-8 w-8 text-green-600 hover:text-green-700"
+                            className="p-1 h-6 w-6 text-green-600 hover:text-green-700"
                             title="WhatsApp"
                           >
-                            <MessageCircle size={12} />
+                            <MessageCircle size={10} />
                           </Button>
                         )}
                         
@@ -177,20 +177,20 @@ const Index = () => {
                           onClick={() => navigate(`/edit-worker/${worker.id}`)}
                           variant="outline"
                           size="sm"
-                          className="p-1 h-8 w-8 text-blue-600 hover:text-blue-700"
+                          className="p-1 h-6 w-6 text-blue-600 hover:text-blue-700"
                           title="Edit"
                         >
-                          <Edit size={12} />
+                          <Edit size={10} />
                         </Button>
                         
                         <Button
                           onClick={() => handleDeleteWorker(worker.id)}
                           variant="outline"
                           size="sm"
-                          className="p-1 h-8 w-8 text-red-600 hover:text-red-700"
+                          className="p-1 h-6 w-6 text-red-600 hover:text-red-700"
                           title="Delete"
                         >
-                          <Trash size={12} />
+                          <Trash size={10} />
                         </Button>
                       </div>
                     </div>
@@ -227,20 +227,20 @@ const Index = () => {
                           onClick={() => navigate(`/edit-bill/${bill.id}`)}
                           variant="outline"
                           size="sm"
-                          className="p-1 h-8 w-8 text-blue-600 hover:text-blue-700"
+                          className="p-1 h-6 w-6 text-blue-600 hover:text-blue-700"
                           title="Edit"
                         >
-                          <Edit size={12} />
+                          <Edit size={10} />
                         </Button>
                         
                         <Button
                           onClick={() => handleDeleteBill(bill.id)}
                           variant="outline"
                           size="sm"
-                          className="p-1 h-8 w-8 text-red-600 hover:text-red-700"
+                          className="p-1 h-6 w-6 text-red-600 hover:text-red-700"
                           title="Delete"
                         >
-                          <Trash size={12} />
+                          <Trash size={10} />
                         </Button>
                       </div>
                     </div>
@@ -253,11 +253,36 @@ const Index = () => {
       </main>
 
       {/* Modals */}
-      {showAddWorker && <AddWorkerForm onClose={() => setShowAddWorker(false)} />}
-      {showAddBill && <AddBillForm onClose={() => setShowAddBill(false)} />}
-      {showAddExpenditure && <AddExpenditureForm onClose={() => setShowAddExpenditure(false)} />}
-      {showAddWage && <AddWageForm onClose={() => setShowAddWage(false)} />}
-      {showAddAdvance && <AddAdvanceForm onClose={() => setShowAddAdvance(false)} />}
+      {showAddWorker && (
+        <AddWorkerForm 
+          onSave={() => setShowAddWorker(false)} 
+          onCancel={() => setShowAddWorker(false)} 
+        />
+      )}
+      {showAddBill && (
+        <AddBillForm 
+          onSave={() => setShowAddBill(false)} 
+          onCancel={() => setShowAddBill(false)} 
+        />
+      )}
+      {showAddExpenditure && (
+        <AddExpenditureForm 
+          onSave={() => setShowAddExpenditure(false)} 
+          onCancel={() => setShowAddExpenditure(false)} 
+        />
+      )}
+      {showAddWage && (
+        <AddWageForm 
+          onSave={() => setShowAddWage(false)} 
+          onCancel={() => setShowAddWage(false)} 
+        />
+      )}
+      {showAddAdvance && (
+        <AddAdvanceForm 
+          onSave={() => setShowAddAdvance(false)} 
+          onCancel={() => setShowAddAdvance(false)} 
+        />
+      )}
       {selectedWorkerForSalary && (
         <WorkerSalaryModal
           worker={selectedWorkerForSalary}
@@ -267,6 +292,7 @@ const Index = () => {
       {selectedWorkerForDetail && (
         <WorkerDetailModal
           worker={selectedWorkerForDetail}
+          expenditureRecords={expenditureRecords || []}
           onClose={() => setSelectedWorkerForDetail(null)}
         />
       )}
