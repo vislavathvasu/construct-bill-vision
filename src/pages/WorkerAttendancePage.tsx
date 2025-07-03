@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
-import { ArrowLeft, Calendar, Check, X, User, Edit } from 'lucide-react';
+import { ArrowLeft, Check, X, User, Edit, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useWorkers } from '@/hooks/useWorkers';
 import { useAttendance } from '@/hooks/useAttendance';
@@ -16,6 +17,8 @@ const WorkerAttendancePage: React.FC = () => {
   const { workers, loading: workersLoading, updateWorker } = useWorkers();
   const { attendanceRecords, loading: attendanceLoading, markAttendance } = useAttendance();
   const { user, loading: authLoading } = useAuth();
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [editWageWorker, setEditWageWorker] = useState<any>(null);
   const [backdateWorker, setBackdateWorker] = useState<any>(null);
 
@@ -47,6 +50,47 @@ const WorkerAttendancePage: React.FC = () => {
     );
   }
 
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  const generateCalendar = () => {
+    const firstDay = new Date(selectedYear, selectedMonth - 1, 1);
+    const lastDay = new Date(selectedYear, selectedMonth, 0);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
+    
+    const calendar = [];
+    const currentDate = new Date(startDate);
+    
+    for (let week = 0; week < 6; week++) {
+      const weekDays = [];
+      for (let day = 0; day < 7; day++) {
+        const dateStr = currentDate.toISOString().split('T')[0];
+        const attendanceRecord = attendanceRecords.find(record => 
+          record.worker_id === id && record.date === dateStr
+        );
+        const isCurrentMonth = currentDate.getMonth() === selectedMonth - 1;
+        
+        weekDays.push({
+          date: new Date(currentDate),
+          dateStr,
+          day: currentDate.getDate(),
+          isCurrentMonth,
+          status: attendanceRecord?.status,
+        });
+        
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+      calendar.push(weekDays);
+      
+      if (currentDate > lastDay && week > 3) break;
+    }
+    
+    return calendar;
+  };
+
   const handleMarkAttendance = async (date: Date, status: 'present' | 'absent') => {
     if (!worker) return;
     try {
@@ -72,12 +116,14 @@ const WorkerAttendancePage: React.FC = () => {
     }
   };
 
-  const getTodayAttendance = () => {
-    const today = new Date().toISOString().split('T')[0];
-    return attendanceRecords.find(record => 
-      record.worker_id === worker?.id && record.date === today
-    )?.status;
-  };
+  // Get today's attendance status
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  const todayAttendance = attendanceRecords.find(record => 
+    record.worker_id === id && record.date === todayStr
+  );
+
+  const calendar = generateCalendar();
 
   if (workersLoading || attendanceLoading) {
     return (
@@ -86,8 +132,6 @@ const WorkerAttendancePage: React.FC = () => {
       </div>
     );
   }
-
-  const todayStatus = getTodayAttendance();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -159,76 +203,120 @@ const WorkerAttendancePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Today's Attendance Section */}
+        {/* Today's Attendance Actions */}
         <div className="bg-white rounded-xl shadow-md p-6 mb-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Today's Attendance</h3>
-          
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-600">Status:</span>
-              {todayStatus ? (
-                <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  todayStatus === 'present' 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
+            <div className="text-gray-600">
+              Today ({today.toLocaleDateString()}): 
+              {todayAttendance ? (
+                <span className={`ml-2 font-semibold ${
+                  todayAttendance.status === 'present' ? 'text-green-600' : 'text-red-600'
                 }`}>
-                  {todayStatus === 'present' ? 'Present Today' : 'Absent Today'}
-                </div>
+                  {todayAttendance.status === 'present' ? 'Present' : 'Absent'}
+                </span>
               ) : (
-                <div className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                  Not Marked
-                </div>
+                <span className="ml-2 font-semibold text-gray-500">Not Marked</span>
               )}
             </div>
             
-            <div className="flex space-x-2">
-              <Button
-                onClick={() => handleMarkAttendance(new Date(), 'present')}
-                className="bg-green-500 hover:bg-green-600 text-white"
-                size="sm"
-              >
-                <Check size={16} className="mr-2" />
-                Present Today
-              </Button>
-              <Button
-                onClick={() => handleMarkAttendance(new Date(), 'absent')}
-                className="bg-red-500 hover:bg-red-600 text-white"
-                size="sm"
-              >
-                <X size={16} className="mr-2" />
-                Absent Today
-              </Button>
-            </div>
+            {!todayAttendance && (
+              <div className="flex space-x-3">
+                <Button
+                  onClick={() => handleMarkAttendance(today, 'present')}
+                  className="bg-green-500 hover:bg-green-600 text-white"
+                >
+                  <Check size={16} className="mr-2" />
+                  Present Today
+                </Button>
+                <Button
+                  onClick={() => handleMarkAttendance(today, 'absent')}
+                  className="bg-red-500 hover:bg-red-600 text-white"
+                >
+                  <X size={16} className="mr-2" />
+                  Absent Today
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Attendance Summary */}
+        {/* Attendance Calendar */}
         <div className="bg-white rounded-xl shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            Attendance Summary
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-800">
+              Attendance Calendar
+            </h3>
+            
+            <div className="flex items-center space-x-4">
+              <Calendar size={20} className="text-gray-500" />
+              <Select 
+                value={selectedMonth.toString()} 
+                onValueChange={(value) => setSelectedMonth(parseInt(value))}
+              >
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {monthNames.map((month, index) => (
+                    <SelectItem key={index + 1} value={(index + 1).toString()}>
+                      {month}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select 
+                value={selectedYear.toString()} 
+                onValueChange={(value) => setSelectedYear(parseInt(value))}
+              >
+                <SelectTrigger className="w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i).map(year => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-green-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {attendanceRecords.filter(r => r.worker_id === worker?.id && r.status === 'present').length}
-              </div>
-              <div className="text-sm text-green-700">Days Present</div>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <div className="grid grid-cols-7 gap-1 mb-2">
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                <div key={day} className="text-center text-sm font-medium text-gray-600 p-2">
+                  {day}
+                </div>
+              ))}
             </div>
             
-            <div className="bg-red-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-red-600">
-                {attendanceRecords.filter(r => r.worker_id === worker?.id && r.status === 'absent').length}
+            {calendar.map((week, weekIndex) => (
+              <div key={weekIndex} className="grid grid-cols-7 gap-1 mb-1">
+                {week.map((day, dayIndex) => (
+                  <div
+                    key={dayIndex}
+                    className={`
+                      text-center p-3 text-sm rounded min-h-[60px] flex flex-col items-center justify-center
+                      ${!day.isCurrentMonth ? 'text-gray-300 bg-gray-100' : 'text-gray-700 bg-white border border-gray-200'}
+                      ${day.status === 'present' ? 'bg-green-100 border-green-300 text-green-800' : ''}
+                      ${day.status === 'absent' ? 'bg-red-100 border-red-300 text-red-800' : ''}
+                    `}
+                  >
+                    <div className="font-semibold mb-1">{day.day}</div>
+                    {day.isCurrentMonth && day.status && (
+                      <div className={`text-xs font-bold px-2 py-1 rounded ${
+                        day.status === 'present' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                      }`}>
+                        {day.status === 'present' ? 'P' : 'A'}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
-              <div className="text-sm text-red-700">Days Absent</div>
-            </div>
-            
-            <div className="bg-blue-50 p-4 rounded-lg text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {attendanceRecords.filter(r => r.worker_id === worker?.id).length}
-              </div>
-              <div className="text-sm text-blue-700">Total Records</div>
-            </div>
+            ))}
           </div>
         </div>
       </div>

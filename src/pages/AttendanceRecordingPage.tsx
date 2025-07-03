@@ -79,12 +79,32 @@ const AttendanceRecordingPage: React.FC = () => {
     }
   };
 
-  const getTodayAttendance = (workerId: string) => {
+  const getTodayAttendanceStats = () => {
     const today = new Date().toISOString().split('T')[0];
-    return attendanceRecords.find(record => 
-      record.worker_id === workerId && record.date === today
-    )?.status;
+    let presentCount = 0;
+    let absentCount = 0;
+    let notMarkedCount = 0;
+
+    workers.forEach(worker => {
+      const todayRecord = attendanceRecords.find(record => 
+        record.worker_id === worker.id && record.date === today
+      );
+      
+      if (todayRecord) {
+        if (todayRecord.status === 'present') {
+          presentCount++;
+        } else {
+          absentCount++;
+        }
+      } else {
+        notMarkedCount++;
+      }
+    });
+
+    return { presentCount, absentCount, notMarkedCount };
   };
+
+  const { presentCount, absentCount, notMarkedCount } = getTodayAttendanceStats();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -109,6 +129,25 @@ const AttendanceRecordingPage: React.FC = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Today's Summary */}
+        <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Today's Summary</h2>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-green-600">{presentCount}</div>
+              <div className="text-green-800 font-medium">Present Today</div>
+            </div>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-red-600">{absentCount}</div>
+              <div className="text-red-800 font-medium">Absent Today</div>
+            </div>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-gray-600">{notMarkedCount}</div>
+              <div className="text-gray-800 font-medium">Not Marked</div>
+            </div>
+          </div>
+        </div>
+
         {workersLoading || attendanceLoading ? (
           <div className="text-center py-12">Loading workers and attendance...</div>
         ) : (
@@ -117,95 +156,54 @@ const AttendanceRecordingPage: React.FC = () => {
             <div className="w-1/3">
               <h2 className="text-lg font-semibold mb-4 text-gray-800">Workers</h2>
               <div className="space-y-3">
-                {workers.map((worker) => {
-                  const todayStatus = getTodayAttendance(worker.id);
-                  
-                  return (
-                    <div 
-                      key={worker.id}
-                      className="bg-white rounded-lg shadow-sm p-4 border border-gray-200"
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-3">
-                          {worker.photo_url ? (
-                            <img 
-                              src={worker.photo_url} 
-                              alt="Worker"
-                              className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
-                            />
-                          ) : (
-                            <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                              <User size={20} className="text-gray-500" />
-                            </div>
-                          )}
-                          <div>
-                            <h3 className="font-semibold text-gray-800">{worker.name}</h3>
-                            <p className="text-sm text-gray-600">₹{worker.daily_wage}/day</p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex space-x-2">
-                          <Button
-                            onClick={() => setBackdateWorker(worker)}
-                            variant="outline"
-                            size="sm"
-                            className="p-2"
-                            title="Select Date"
-                          >
-                            <Calendar size={16} />
-                          </Button>
-                          
-                          <Button
-                            onClick={() => setEditWageWorker(worker)}
-                            variant="outline"
-                            size="sm"
-                            className="p-2"
-                            title="Edit Wage"
-                          >
-                            <Edit size={16} />
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* Today's Attendance Status */}
-                      <div className="mb-3">
-                        {todayStatus ? (
-                          <div className={`px-2 py-1 rounded text-xs font-medium text-center ${
-                            todayStatus === 'present' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {todayStatus === 'present' ? 'Present Today' : 'Absent Today'}
-                          </div>
+                {workers.map((worker) => (
+                  <div 
+                    key={worker.id}
+                    className="bg-white rounded-lg shadow-sm p-4 border border-gray-200"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        {worker.photo_url ? (
+                          <img 
+                            src={worker.photo_url} 
+                            alt="Worker"
+                            className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                          />
                         ) : (
-                          <div className="px-2 py-1 rounded text-xs font-medium text-center bg-gray-100 text-gray-800">
-                            Not Marked
+                          <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                            <User size={20} className="text-gray-500" />
                           </div>
                         )}
+                        <div>
+                          <h3 className="font-semibold text-gray-800">{worker.name}</h3>
+                          <p className="text-sm text-gray-600">₹{worker.daily_wage}/day</p>
+                        </div>
                       </div>
-
-                      {/* Today's Attendance Buttons */}
+                      
                       <div className="flex space-x-2">
                         <Button
-                          onClick={() => handleMarkAttendance(worker.id, new Date(), 'present')}
+                          onClick={() => setBackdateWorker(worker)}
+                          variant="outline"
                           size="sm"
-                          className="flex-1 bg-green-500 hover:bg-green-600 text-xs"
+                          className="p-2"
+                          title="Select Date"
                         >
-                          <Check size={12} className="mr-1" />
-                          Present Today
+                          <Calendar size={16} />
                         </Button>
+                        
                         <Button
-                          onClick={() => handleMarkAttendance(worker.id, new Date(), 'absent')}
+                          onClick={() => setEditWageWorker(worker)}
+                          variant="outline"
                           size="sm"
-                          className="flex-1 bg-red-500 hover:bg-red-600 text-xs"
+                          className="p-2"
+                          title="Edit Wage"
                         >
-                          <X size={12} className="mr-1" />
-                          Absent Today
+                          <Edit size={16} />
                         </Button>
                       </div>
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             </div>
 
