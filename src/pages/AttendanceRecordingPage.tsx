@@ -79,6 +79,13 @@ const AttendanceRecordingPage: React.FC = () => {
     }
   };
 
+  const getTodayAttendance = (workerId: string) => {
+    const today = new Date().toISOString().split('T')[0];
+    return attendanceRecords.find(record => 
+      record.worker_id === workerId && record.date === today
+    )?.status;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Navigation */}
@@ -110,54 +117,95 @@ const AttendanceRecordingPage: React.FC = () => {
             <div className="w-1/3">
               <h2 className="text-lg font-semibold mb-4 text-gray-800">Workers</h2>
               <div className="space-y-3">
-                {workers.map((worker) => (
-                  <div 
-                    key={worker.id}
-                    className="bg-white rounded-lg shadow-sm p-4 border border-gray-200"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        {worker.photo_url ? (
-                          <img 
-                            src={worker.photo_url} 
-                            alt="Worker"
-                            className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                            <User size={20} className="text-gray-500" />
+                {workers.map((worker) => {
+                  const todayStatus = getTodayAttendance(worker.id);
+                  
+                  return (
+                    <div 
+                      key={worker.id}
+                      className="bg-white rounded-lg shadow-sm p-4 border border-gray-200"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          {worker.photo_url ? (
+                            <img 
+                              src={worker.photo_url} 
+                              alt="Worker"
+                              className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                              <User size={20} className="text-gray-500" />
+                            </div>
+                          )}
+                          <div>
+                            <h3 className="font-semibold text-gray-800">{worker.name}</h3>
+                            <p className="text-sm text-gray-600">₹{worker.daily_wage}/day</p>
                           </div>
-                        )}
-                        <div>
-                          <h3 className="font-semibold text-gray-800">{worker.name}</h3>
-                          <p className="text-sm text-gray-600">₹{worker.daily_wage}/day</p>
+                        </div>
+                        
+                        <div className="flex space-x-2">
+                          <Button
+                            onClick={() => setBackdateWorker(worker)}
+                            variant="outline"
+                            size="sm"
+                            className="p-2"
+                            title="Select Date"
+                          >
+                            <Calendar size={16} />
+                          </Button>
+                          
+                          <Button
+                            onClick={() => setEditWageWorker(worker)}
+                            variant="outline"
+                            size="sm"
+                            className="p-2"
+                            title="Edit Wage"
+                          >
+                            <Edit size={16} />
+                          </Button>
                         </div>
                       </div>
-                      
+
+                      {/* Today's Attendance Status */}
+                      <div className="mb-3">
+                        {todayStatus ? (
+                          <div className={`px-2 py-1 rounded text-xs font-medium text-center ${
+                            todayStatus === 'present' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {todayStatus === 'present' ? 'Present Today' : 'Absent Today'}
+                          </div>
+                        ) : (
+                          <div className="px-2 py-1 rounded text-xs font-medium text-center bg-gray-100 text-gray-800">
+                            Not Marked
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Today's Attendance Buttons */}
                       <div className="flex space-x-2">
                         <Button
-                          onClick={() => setBackdateWorker(worker)}
-                          variant="outline"
+                          onClick={() => handleMarkAttendance(worker.id, new Date(), 'present')}
                           size="sm"
-                          className="p-2"
-                          title="Select Date"
+                          className="flex-1 bg-green-500 hover:bg-green-600 text-xs"
                         >
-                          <Calendar size={16} />
+                          <Check size={12} className="mr-1" />
+                          Present Today
                         </Button>
-                        
                         <Button
-                          onClick={() => setEditWageWorker(worker)}
-                          variant="outline"
+                          onClick={() => handleMarkAttendance(worker.id, new Date(), 'absent')}
                           size="sm"
-                          className="p-2"
-                          title="Edit Wage"
+                          className="flex-1 bg-red-500 hover:bg-red-600 text-xs"
                         >
-                          <Edit size={16} />
+                          <X size={12} className="mr-1" />
+                          Absent Today
                         </Button>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
