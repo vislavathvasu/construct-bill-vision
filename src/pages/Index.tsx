@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Plus,
@@ -212,7 +213,7 @@ const Index: React.FC = () => {
                         onClick={() => setSelectedWorker(worker)}
                         variant="outline"
                         size="sm"
-                        className="text-green-500 border-green-200 hover:bg-green-50"
+                        className="text-green-500 border-green-200 hover:bg-green-50 px-2 py-1"
                       >
                         <DollarSign size={12} className="mr-1" />
                         Salary
@@ -223,7 +224,7 @@ const Index: React.FC = () => {
                           onClick={() => window.open(`https://wa.me/${worker.phone}`, '_blank')}
                           variant="outline"
                           size="sm"
-                          className="text-green-500 border-green-200 hover:bg-green-50"
+                          className="text-green-500 border-green-200 hover:bg-green-50 px-2 py-1"
                         >
                           <MessageCircle size={12} className="mr-1" />
                           WhatsApp
@@ -234,7 +235,7 @@ const Index: React.FC = () => {
                         onClick={() => navigate(`/edit-worker/${worker.id}`)}
                         variant="outline"
                         size="sm"
-                        className="text-blue-500 border-blue-200 hover:bg-blue-50"
+                        className="text-blue-500 border-blue-200 hover:bg-blue-50 px-2 py-1"
                       >
                         <Edit size={12} className="mr-1" />
                         Edit
@@ -244,7 +245,7 @@ const Index: React.FC = () => {
                         onClick={() => handleDeleteWorker(worker.id)}
                         variant="outline"
                         size="sm"
-                        className="text-red-500 border-red-200 hover:bg-red-50"
+                        className="text-red-500 border-red-200 hover:bg-red-50 px-2 py-1"
                       >
                         <Trash2 size={12} className="mr-1" />
                         Delete
